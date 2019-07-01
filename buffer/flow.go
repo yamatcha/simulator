@@ -1,7 +1,7 @@
 package buffer
 
 import (
-	// "fmt"
+	"fmt"
 	"github.com/google/gopacket"
 	// "github.com/google/gopacket/layers"
 	// "github.com/google/gopacket/pcap"
@@ -15,15 +15,21 @@ import (
 type Buffer struct{
 	FiveTuple string
 	Firstime time.Time
-	len int
+	TimeList []float64
 }
 
 func Check_buf_time(buf []*Buffer,nowtime time.Time, time_width float64, cnt int ) int{
 	for i,b := range buf{
-		duration:= nowtime.Sub(b.Firstime).Seconds()
-		if duration > time_width{
+		if GetDuration(b.Firstime,nowtime) > time_width{
 			cnt++
-			buf = append(buf[:i],buf[(i+1):]...)
+			fmt.Println("[",len(buf),"]")
+			fmt.Println(buf[i])
+			fmt.Println(i)
+			// if len(buf)==1 {
+			// 	buf = []*Buffer{}
+			// 	break
+			// }
+			buf = append(buf[:i],buf[i+1:]...)
 		}
 	}
 	return len(buf)
@@ -38,14 +44,21 @@ func Search_buf(buf []*Buffer,fivetuple string)int{
 	return -1
 }
 
-func Append_buf(packet gopacket.Packet, buf []*Buffer){
-	fivetuple := GetFiveTuple(packet)
-	bnum := Search_buf(buf,fivetuple)
-	ptime := GetTime(packet)
-	if bnum!=-1{
-		newbuf:=Buffer{fivetuple,ptime,1}
-		buf = append(buf,&newbuf)
+func Append_buf(packet *gopacket.Packet, buf *[]*Buffer){
+	fivetuple := GetFiveTuple(*packet)
+	bnum := Search_buf(*buf,fivetuple)
+	// fmt.Println(bnum)
+	ptime := GetTime(*packet)
+	if bnum==-1{
+		new_timelist := []float64{0.0}
+		newbuf:=Buffer{fivetuple,ptime,new_timelist}
+		*buf = append(*buf,&newbuf)
+		// for i,v := range *buf{
+		// 	fmt.Println(i,*v)
+		// }
+		// fmt.Println(buf)
 	}else{
-		buf[bnum].len++
+		b := (*buf)[bnum]
+		b.TimeList = append(b.TimeList,GetDuration(b.Firstime,ptime))
 	}
 }

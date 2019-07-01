@@ -1,7 +1,7 @@
 package main
 
 import (
-	// "fmt"
+	"fmt"
 	"github.com/google/gopacket"
 	// "github.com/google/gopacket/layers"
 	"github.com/google/gopacket/pcap"
@@ -31,7 +31,9 @@ const (
 func main() {
 	// open pcap file and call FlowDivide
 	handle, err = pcap.OpenOffline(pcapFile)
+	buf := []*buffer.Buffer{}
 
+	cnt:=0
 	// read time width
 	flag.Parse()
 	time_width,_:=strconv.ParseFloat(flag.Arg(0),64)
@@ -41,16 +43,22 @@ func main() {
 	}
 	defer handle.Close()
 	packetSource := gopacket.NewPacketSource(handle, handle.LinkType())
-	var flow eval.Flow
 	for {
 		packet, err := packetSource.NextPacket()
+		// fmt.Println(packet)
 		if err == io.EOF {
 			break
 		} else if err != nil {
 			log.Println("Error:", err)
 			continue
 		}
-		buffer.Append_buf(packet,buf)
+		nowtime:=buffer.GetTime(packet)
+		buffer.Check_buf_time(buf,nowtime,time_width,cnt)
+		buffer.Append_buf(&packet,&buf)
+		for i,v :=range buf{
+			fmt.Println("hoge")
+			fmt.Println(i,v)
+		}
+		fmt.Println()
 	}
-
 }

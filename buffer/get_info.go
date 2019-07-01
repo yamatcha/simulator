@@ -49,3 +49,7 @@ func GetTime(packet gopacket.Packet)time.Time{
 	meta:=packet.Metadata()
 	return meta.Timestamp
 }
+
+func GetDuration(first time.Time,now time.Time)float64{
+	return now.Sub(first).Seconds()
+}
