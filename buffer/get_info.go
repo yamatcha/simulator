@@ -12,7 +12,7 @@ import (
 	"time"
 )
 
-func GetFiveTuple(packet gopacket.Packet) string{
+func GetFiveTuple(packet gopacket.Packet) string {
 	// extract the factor of packet
 	ip, _ := packet.Layer(layers.LayerTypeIPv4).(*layers.IPv4)
 	var info string
@@ -26,18 +26,18 @@ func GetFiveTuple(packet gopacket.Packet) string{
 		// port is different between udp and tcp
 		if ip.Protocol.String() == "UDP" {
 			udp, _ := packet.Layer(layers.LayerTypeUDP).(*layers.UDP)
-			if udp!=nil{
-			srcport := udp.SrcPort.String()
-			dstport := udp.DstPort.String()
-			info = srcip +" "+ srcport +" "+ dstip +" "+ dstport +" "+ protocol
+			if udp != nil {
+				srcport := udp.SrcPort.String()
+				dstport := udp.DstPort.String()
+				info = srcip + " " + srcport + " " + dstip + " " + dstport + " " + protocol
 			}
 		}
 		if ip.Protocol.String() == "TCP" {
 			tcp, _ := packet.Layer(layers.LayerTypeTCP).(*layers.TCP)
-			if tcp!=nil{
-			srcport := tcp.SrcPort.String()
-			dstport := tcp.DstPort.String()
-			info = srcip +" "+ srcport +" "+ dstip +" "+ dstport +" "+ protocol
+			if tcp != nil {
+				srcport := tcp.SrcPort.String()
+				dstport := tcp.DstPort.String()
+				info = srcip + " " + srcport + " " + dstip + " " + dstport + " " + protocol
 			}
 		}
 		// fmt.Println("[", info, "]")
@@ -45,11 +45,11 @@ func GetFiveTuple(packet gopacket.Packet) string{
 	return info
 }
 
-func GetTime(packet gopacket.Packet)time.Time{
-	meta:=packet.Metadata()
+func GetTime(packet gopacket.Packet) time.Time {
+	meta := packet.Metadata()
 	return meta.Timestamp
 }
 
-func GetDuration(first time.Time,now time.Time)float64{
+func GetDuration(first time.Time, now time.Time) float64 {
 	return now.Sub(first).Seconds()
 }
