@@ -1,7 +1,7 @@
 package main
 
 import (
-	"fmt"
+	// "fmt"
 	"github.com/google/gopacket"
 	// "github.com/google/gopacket/layers"
 	"./buffer"
@@ -63,10 +63,15 @@ func main() {
 			std_time = nowtime
 		}
 		buffer.Check_buf_time(buf, &buflist, nowtime, time_width, &access_cnt, &max, &num_access)
-		cs_count=buffer.Check_seconds(std_time,nowtime,per_s,&num_access,&access_pers,cs_count)
-		buffer.Append_buf(&buf, &buflist, nowtime, fivetuple)
+		if cs_count !=900/per_s{
+			cs_count=buffer.Check_seconds(std_time,nowtime,per_s,&num_access,&access_pers,cs_count)
+		}
+			buffer.Append_buf(&buf, &buflist, nowtime, fivetuple)
 		count++
 	}
-	buffer.Check_last(buf, &buflist, &access_cnt, &max)
-	fmt.Println(max, access_cnt, count)
+	buffer.Check_last(buf, &buflist, &access_cnt, &max, &num_access, &access_pers)
+	// for i,v := range access_pers{
+	// 	fmt.Println(float64(i+1)*(per_s),v)
+	// }
+	// fmt.Println(max, access_cnt, count)
 }

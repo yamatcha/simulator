@@ -13,8 +13,8 @@ stats accessper1s_000001data using 2 name "accessper1s_000001stats"
 accessper1s_0000001data = "accessper1s_0000001.dat"
 stats accessper1s_0000001data using 2 name "accessper1s_0000001stats"
 
-set xlabel "Packets of max chunk from flow"
-set ylabel "Cumulative Percentage of Packets"
+set xlabel "Time /s"
+set ylabel "TCAM access count"
 set tics font "Arial, 10"
 
 set logscale x

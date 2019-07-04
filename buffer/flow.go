@@ -21,7 +21,6 @@ type Buffer struct {
 type Buffers map[string]Buffer
 
 func Check_buf_time(buf Buffers, buflist *[]string, nowtime time.Time, time_width float64, cnt *int, max *int, num_access *int) {
-
 	for {
 		if len(*buflist)==0{
 			return
@@ -43,21 +42,24 @@ func Check_buf_time(buf Buffers, buflist *[]string, nowtime time.Time, time_widt
 }
 
 func Check_seconds(std_time time.Time,nowtime time.Time,time_width float64, num_access *int, access_pers *[]int,cs_count float64) float64{
-	if GetDuration(std_time,nowtime) > cs_count*time_width{
+	if GetDuration(std_time,nowtime) > (cs_count+1)*time_width{
 		*access_pers = append(*access_pers,*num_access)
 		*num_access = 0
-		return (cs_count+1.0)
+		return (cs_count+time_width)
 	}
 	return cs_count
 }
 
-func Check_last(buf Buffers, buflist *[]string, cnt *int, max *int) {
+func Check_last(buf Buffers, buflist *[]string, cnt *int, max *int,num_access *int, access_pers *[]int) {
 	for {
 		if len(*buflist)==0{
+			*access_pers = append(*access_pers,*num_access)
 			return
 		}
 		k := (*buflist)[0]
+		fmt.Println(len(*(buf[k].TimeList)))
 			*cnt++
+			*num_access++
 			if *max < len(*(buf[k].TimeList)) {
 				*max = len(*(buf[k].TimeList))
 			}
