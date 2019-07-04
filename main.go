@@ -67,9 +67,6 @@ func main() {
 		buffer.Append_buf(&buf, &buflist, nowtime, fivetuple)
 		count++
 	}
-
-	// fmt.Println(max, access_cnt, count)
-	// for i,v := range access_pers{
-	// 	fmt.Println(float64(i+1)*(per_s),v)
-	// }
+	buffer.Check_last(buf, &buflist, &access_cnt, &max)
+	fmt.Println(max, access_cnt, count)
 }

@@ -51,6 +51,22 @@ func Check_seconds(std_time time.Time,nowtime time.Time,time_width float64, num_
 	return cs_count
 }
 
+func Check_last(buf Buffers, buflist *[]string, cnt *int, max *int) {
+	for {
+		if len(*buflist)==0{
+			return
+		}
+		k := (*buflist)[0]
+			*cnt++
+			if *max < len(*(buf[k].TimeList)) {
+				*max = len(*(buf[k].TimeList))
+			}
+			delete(buf, k)
+			*buflist = append((*buflist)[:0],(*buflist)[1:]...)
+	}
+}
+
+
 func Append_buf(buf *Buffers, buflist *[]string, nowtime time.Time, fivetuple string) {
 	_, ok := (*buf)[fivetuple]
 	if !ok {
