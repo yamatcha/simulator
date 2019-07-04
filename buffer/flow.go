@@ -1,7 +1,7 @@
 package buffer
 
 import (
-	// "fmt"
+	"fmt"
 	// "github.com/google/gopacket"
 	// "github.com/google/gopacket/layers"
 	// "github.com/google/gopacket/pcap"
@@ -20,7 +20,7 @@ type Buffer struct {
 
 type Buffers map[string]Buffer
 
-func Check_buf_time(buf Buffers, buflist *[]string, nowtime time.Time, time_width float64, cnt *int, max *int) {
+func Check_buf_time(buf Buffers, buflist *[]string, nowtime time.Time, time_width float64, cnt *int, max *int, num_access *int) {
 
 	for {
 		if len(*buflist)==0{
@@ -28,15 +28,9 @@ func Check_buf_time(buf Buffers, buflist *[]string, nowtime time.Time, time_widt
 		}
 		k := (*buflist)[0]
 		if GetDuration(buf[k].Firstime, nowtime) > time_width {
-			// fmt.Println("duration",GetDuration(buf[k].Firstime, nowtime))
+			fmt.Println(len(*(buf[k].TimeList)))
 			*cnt++
-			// fmt.Println(len(buf))
-			// for _,v := range buf{
-			// 	fmt.Println(v)
-			// }
-			// fmt.Println(*buflist)
-			// fmt.Println(k,buf[k])
-			// fmt.Println("before:",*buf[k].TimeList)
+			*num_access++
 			if *max < len(*(buf[k].TimeList)) {
 				*max = len(*(buf[k].TimeList))
 			}
@@ -46,6 +40,15 @@ func Check_buf_time(buf Buffers, buflist *[]string, nowtime time.Time, time_widt
 		}
 		return
 	}
+}
+
+func Check_seconds(std_time time.Time,nowtime time.Time,time_width float64, num_access *int, access_pers *[]int,cs_count float64) float64{
+	if GetDuration(std_time,nowtime) > cs_count*time_width{
+		*access_pers = append(*access_pers,*num_access)
+		*num_access = 0
+		return (cs_count+1.0)
+	}
+	return cs_count
 }
 
 func Append_buf(buf *Buffers, buflist *[]string, nowtime time.Time, fivetuple string) {

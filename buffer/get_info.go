@@ -40,7 +40,6 @@ func GetFiveTuple(packet gopacket.Packet) string {
 				info = srcip + " " + srcport + " " + dstip + " " + dstport + " " + protocol
 			}
 		}
-		// fmt.Println("[", info, "]")
 	}
 	return info
 }

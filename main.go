@@ -9,7 +9,7 @@ import (
 	// "net"
 	"io"
 	"log"
-	// "time"
+	"time"
 	// "sort"
 	"flag"
 	"strconv"
@@ -31,7 +31,14 @@ func main() {
 	handle, err = pcap.OpenOffline(pcapFile)
 	buf := buffer.Buffers{}
 	buflist := []string{}
-	cnt := 0
+	access_cnt := 0
+	max := 0
+	count := 0
+	num_access :=0
+	access_pers :=[]int{}
+	var std_time time.Time
+	cs_count:=0.0
+	per_s:=1.0
 	// fmt.Println(len(buflist)==0)
 	// read time width
 	flag.Parse()
@@ -42,8 +49,6 @@ func main() {
 	}
 	defer handle.Close()
 	packetSource := gopacket.NewPacketSource(handle, handle.LinkType())
-	max := 0
-	count := 0
 	for {
 		packet, err := packetSource.NextPacket()
 		if err == io.EOF {
@@ -54,13 +59,17 @@ func main() {
 		}
 		nowtime := buffer.GetTime(packet)
 		fivetuple := buffer.GetFiveTuple(packet)
-		buffer.Check_buf_time(buf, &buflist, nowtime, time_width, &cnt, &max)
+		if count==0{
+			std_time = nowtime
+		}
+		buffer.Check_buf_time(buf, &buflist, nowtime, time_width, &access_cnt, &max, &num_access)
+		cs_count=buffer.Check_seconds(std_time,nowtime,per_s,&num_access,&access_pers,cs_count)
 		buffer.Append_buf(&buf, &buflist, nowtime, fivetuple)
-		// fmt.Println(buf)
-		// for _,v := range buf{
-		// 	fmt.Println(*v.TimeList)
-		// }
 		count++
 	}
-	fmt.Println(max, cnt, count)
+
+	// fmt.Println(max, access_cnt, count)
+	// for i,v := range access_pers{
+	// 	fmt.Println(float64(i+1)*(per_s),v)
+	// }
 }
