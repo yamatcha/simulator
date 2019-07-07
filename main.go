@@ -1,7 +1,7 @@
 package main
 
 import (
-	// "fmt"
+	"fmt"
 	"github.com/google/gopacket"
 	// "github.com/google/gopacket/layers"
 	"./buffer"
@@ -22,24 +22,21 @@ var (
 )
 
 const (
-	pcapFile string = "./pcap/201704122345.pcap"
-	// pcapFile string = "./pcap/http.pcap"
+	// pcapFile string = "./pcap/201704122345.pcap"
+	pcapFile string  = "./pcap/http.pcap"
+	perSec   float64 = 1.0
+	maxSec   int     = 900
 )
 
 func main() {
 	// open pcap file and call FlowDivide
 	handle, err = pcap.OpenOffline(pcapFile)
 	buf := buffer.Buffers{}
-	buflist := []string{}
-	access_cnt := 0
-	max := 0
-	count := 0
-	num_access :=0
-	access_pers :=[]int{}
+	bufList := []string{}
 	var std_time time.Time
-	cs_count:=0.0
-	per_s:=1.0
-	// fmt.Println(len(buflist)==0)
+	var currentTime time.Time
+	result := buffer.Result_data{0,0,0,[]int{0},false}
+	// fmt.Println(len(bufList)==0)
 	// read time width
 	flag.Parse()
 	time_width, _ := strconv.ParseFloat(flag.Arg(0), 64)
@@ -49,7 +46,8 @@ func main() {
 	}
 	defer handle.Close()
 	packetSource := gopacket.NewPacketSource(handle, handle.LinkType())
-	for {
+	i:=0
+	for i = 0; ; i++ {
 		packet, err := packetSource.NextPacket()
 		if err == io.EOF {
 			break
@@ -57,21 +55,22 @@ func main() {
 			log.Println("Error:", err)
 			continue
 		}
-		nowtime := buffer.GetTime(packet)
-		fivetuple := buffer.GetFiveTuple(packet)
-		if count==0{
-			std_time = nowtime
+		currentTime = buffer.GetTime(packet)
+		fiveTuple := buffer.GetFiveTuple(packet)
+		if i == 0 {
+			std_time = currentTime
 		}
-		buffer.Check_buf_time(buf, &buflist, nowtime, time_width, &access_cnt, &max, &num_access)
-		if cs_count !=900/per_s{
-			cs_count=buffer.Check_seconds(std_time,nowtime,per_s,&num_access,&access_pers,cs_count)
+		buf, bufList, result = buf.CheckBufferTime(bufList, currentTime, time_width, result)
+		if result.CsCount != int(float64(maxSec)/perSec) {
+			result = buffer.CheckSeconds(std_time, currentTime, perSec, result)
 		}
-			buffer.Append_buf(&buf, &buflist, nowtime, fivetuple)
-		count++
+		buf, bufList = buf.AppendBuffer(bufList, currentTime, fiveTuple)
+		fmt.Println(bufList)
 	}
-	buffer.Check_last(buf, &buflist, &access_cnt, &max, &num_access, &access_pers)
-	// for i,v := range access_pers{
-	// 	fmt.Println(float64(i+1)*(per_s),v)
+	result.EndFlag = true
+	buf, bufList, result = buf.CheckBufferTime(bufList, currentTime, time_width, result)
+	// for i,v := range result.AccessPers{
+	// 	fmt.Println(float64(i+1)*(perSec),v)
 	// }
-	// fmt.Println(max, access_cnt, count)
+	fmt.Println(result.MaxPacketNum, result.AccessCount, i)
 }
