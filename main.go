@@ -23,7 +23,8 @@ var (
 
 const (
 	// pcapFile string = "./pcap/201704122345.pcap"
-	pcapFile string  = "./pcap/http.pcap"
+	pcapFile string = "./pcap/201907031400.pcap"
+	// pcapFile string  = "./pcap/http.pcap"
 	perSec   float64 = 1.0
 	maxSec   int     = 900
 )
@@ -65,12 +66,11 @@ func main() {
 			result = buffer.CheckSeconds(std_time, currentTime, perSec, result)
 		}
 		buf, bufList = buf.AppendBuffer(bufList, currentTime, fiveTuple)
-		fmt.Println(bufList)
 	}
 	result.EndFlag = true
 	buf, bufList, result = buf.CheckBufferTime(bufList, currentTime, time_width, result)
-	// for i,v := range result.AccessPers{
-	// 	fmt.Println(float64(i+1)*(perSec),v)
-	// }
-	fmt.Println(result.MaxPacketNum, result.AccessCount, i)
+	for i,v := range result.AccessPers{
+		fmt.Println(float64(i+1)*(perSec),v)
+	}
+	// fmt.Println(result.MaxPacketNum, result.AccessCount, float64(result.AccessCount)/float64(i),i)
 }
