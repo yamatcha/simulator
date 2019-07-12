@@ -1,7 +1,7 @@
 package main
 
 import (
-	"fmt"
+	// "fmt"
 	"github.com/google/gopacket"
 	// "github.com/google/gopacket/layers"
 	"./buffer"
@@ -37,10 +37,10 @@ func main() {
 	var std_time time.Time
 	var currentTime time.Time
 	result := buffer.Result_data{0,0,0,[]int{0},false}
-	// fmt.Println(len(bufList)==0)
 	// read time width
 	flag.Parse()
 	time_width, _ := strconv.ParseFloat(flag.Arg(0), 64)
+	// bufsize, _ := strconv.ParseFloat(flag.Arg(1), 64)
 
 	if err != nil {
 		log.Fatal(err)
@@ -69,8 +69,8 @@ func main() {
 	}
 	result.EndFlag = true
 	buf, bufList, result = buf.CheckBufferTime(bufList, currentTime, time_width, result)
-	for i,v := range result.AccessPers{
-		fmt.Println(float64(i+1)*(perSec),v)
-	}
+	// for i,v := range result.AccessPers{
+	// 	fmt.Println(float64(i+1)*(perSec),v)
+	// }
 	// fmt.Println(result.MaxPacketNum, result.AccessCount, float64(result.AccessCount)/float64(i),i)
 }
