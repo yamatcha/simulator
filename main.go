@@ -36,8 +36,7 @@ func main() {
 	bufList := []string{}
 	var std_time time.Time
 	var currentTime time.Time
-	result := buffer.Result_data{0,0,0,[]int{0},false}
-	// fmt.Println(len(bufList)==0)
+	result := buffer.Result_data{0,0,0,0,[]int{0},false}
 	// read time width
 	flag.Parse()
 	time_width, _ := strconv.ParseFloat(flag.Arg(0), 64)
@@ -63,14 +62,20 @@ func main() {
 		}
 		buf, bufList, result = buf.CheckBufferTime(bufList, currentTime, time_width, result)
 		if result.CsCount != int(float64(maxSec)/perSec) {
-			result = buffer.CheckSeconds(std_time, currentTime, perSec, result)
+			result = buffer.CheckCurrentSec(std_time, currentTime, perSec, result)
 		}
 		buf, bufList = buf.AppendBuffer(bufList, currentTime, fiveTuple)
 	}
 	result.EndFlag = true
 	buf, bufList, result = buf.CheckBufferTime(bufList, currentTime, time_width, result)
-	for i,v := range result.AccessPers{
-		fmt.Println(float64(i+1)*(perSec),v)
-	}
+	
+
+
+	// print result
+
+	fmt.Println(result.BufMax)
+	// for i,v := range result.AccessPers{
+	// 	fmt.Println(float64(i+1)*(perSec),v)
+	// }
 	// fmt.Println(result.MaxPacketNum, result.AccessCount, float64(result.AccessCount)/float64(i),i)
 }

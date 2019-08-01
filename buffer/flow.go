@@ -13,7 +13,6 @@ import (
 )
 
 type Buffer struct {
-	// FiveTuple string
 	FirstTime  time.Time
 	TimeList  *[]float64
 }
@@ -21,10 +20,10 @@ type Buffer struct {
 type Buffers map[string]Buffer
 
 type Result_data struct {
-	// NumAccess    int
 	MaxPacketNum int
 	AccessCount  int
 	CsCount      int
+	BufMax 		 int
 	AccessPers   []int
 	EndFlag      bool
 }
@@ -42,12 +41,15 @@ func (buf Buffers) CheckBufferTime(bufList []string, currentTime time.Time, time
 			i++
 			continue
 		}
+		if len(bufList)>result.BufMax{
+			result.BufMax = len(bufList)
+		}
 		return buf, bufList[i:],result
 	}
 	return buf, nil, result
 }
 
-func CheckSeconds(std_time time.Time, currentTime time.Time, time_width float64, result Result_data) Result_data {
+func CheckCurrentSec(std_time time.Time, currentTime time.Time, time_width float64, result Result_data) Result_data {
 	if GetDuration(std_time, currentTime) > float64(result.CsCount+1)*time_width {
 		result.AccessPers = append(result.AccessPers,0)
 		result.CsCount++
