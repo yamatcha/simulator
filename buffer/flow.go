@@ -1,7 +1,7 @@
 package buffer
 
 import (
-	// "fmt"
+	"fmt"
 	// "github.com/google/gopacket"
 	// "github.com/google/gopacket/layers"
 	// "github.com/google/gopacket/pcap"
@@ -37,6 +37,7 @@ func (buf Buffers) CheckBufferTime(bufList []string, currentTime time.Time, time
 			if result.MaxPacketNum < len(*(buf[k].TimeList)) {
 				result.MaxPacketNum = len(*(buf[k].TimeList))
 			}
+			fmt.Println(len(*(buf[k].TimeList)))
 			delete(buf, k)
 			i++
 			continue

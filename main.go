@@ -40,6 +40,7 @@ func main() {
 	// read time width
 	flag.Parse()
 	time_width, _ := strconv.ParseFloat(flag.Arg(0), 64)
+	// bufsize, _ := strconv.ParseFloat(flag.Arg(1), 64)
 
 	if err != nil {
 		log.Fatal(err)
