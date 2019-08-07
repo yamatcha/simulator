@@ -2,75 +2,80 @@ package main
 
 import (
 	"fmt"
-	"github.com/google/gopacket"
+	// "github.com/google/gopacket"
+	"os"
 	// "github.com/google/gopacket/layers"
 	"./buffer"
-	"github.com/google/gopacket/pcap"
 	// "net"
-	"io"
+	// "io"
 	"log"
 	"time"
 	// "sort"
 	"flag"
 	"strconv"
 	// "reflect"
+	"encoding/csv"
 )
 
 var (
-	handle *pcap.Handle
-	err    error
+	err error
 )
 
 const (
-	// pcapFile string = "./pcap/201704122345.pcap"
-	pcapFile string = "./pcap/201907031400.pcap"
-	// pcapFile string  = "./pcap/http.pcap"
-	perSec   float64 = 1.0
-	maxSec   int     = 900
+	// csvpath string  = "./csv/http.csv"
+	// csvpath string = "./csv/201704122345.csv"
+	csvpath string = "./csv/201907031400.csv"
+	perSec  float64 = 1.0
+	maxSec  int     = 900
 )
 
 func main() {
-	// open pcap file and call FlowDivide
-	handle, err = pcap.OpenOffline(pcapFile)
+	// open csv and call FlowDivide
 	buf := buffer.Buffers{}
 	bufList := []string{}
 	var std_time time.Time
 	var currentTime time.Time
-	result := buffer.Result_data{0,0,0,0,[]int{0},false}
-	// read time width
+	result := buffer.Result_data{0, 0, 0, 0, []int{0}, false}
+
+	// read time width and buffer size
 	flag.Parse()
 	time_width, _ := strconv.ParseFloat(flag.Arg(0), 64)
 	// bufsize, _ := strconv.ParseFloat(flag.Arg(1), 64)
 
+	file, err := os.Open(csvpath)
+	if err != nil {
+		panic(err)
+	}
+
 	if err != nil {
 		log.Fatal(err)
 	}
-	defer handle.Close()
-	packetSource := gopacket.NewPacketSource(handle, handle.LinkType())
-	i:=0
+	defer file.Close()
+
+	reader := csv.NewReader(file)
+	var line []string
+
+	i := 0
 	for i = 0; ; i++ {
-		packet, err := packetSource.NextPacket()
-		if err == io.EOF {
+		line, err = reader.Read()
+		if err != nil {
 			break
-		} else if err != nil {
-			log.Println("Error:", err)
-			continue
 		}
-		currentTime = buffer.GetTime(packet)
-		fiveTuple := buffer.GetFiveTuple(packet)
+		fiveTuple := line[0]
+		currentTime, _ = time.Parse(time.RFC3339Nano, line[1])
+		// fmt.Println("["+line[1]+"]")
+		// fmt.Println(currentTime)
 		if i == 0 {
 			std_time = currentTime
 		}
 		buf, bufList, result = buf.CheckBufferTime(bufList, currentTime, time_width, result)
-		if result.CsCount != int(float64(maxSec)/perSec) {
+		if result.CurrentSecCount != int(float64(maxSec)/perSec) {
 			result = buffer.CheckCurrentSec(std_time, currentTime, perSec, result)
 		}
 		buf, bufList = buf.AppendBuffer(bufList, currentTime, fiveTuple)
 	}
 	result.EndFlag = true
 	buf, bufList, result = buf.CheckBufferTime(bufList, currentTime, time_width, result)
-	
-
 
 	// print result
 
@@ -78,5 +83,5 @@ func main() {
 	// for i,v := range result.AccessPers{
 	// 	fmt.Println(float64(i+1)*(perSec),v)
 	// }
-	// fmt.Println(result.MaxPacketNum, result.AccessCount, float64(result.AccessCount)/float64(i),i)
+	fmt.Println(result.MaxPacketNum, result.AccessCount, float64(result.AccessCount)/float64(i),i)
 }

@@ -1,7 +1,7 @@
 package buffer
 
 import (
-	"fmt"
+	// "fmt"
 	// "github.com/google/gopacket"
 	// "github.com/google/gopacket/layers"
 	// "github.com/google/gopacket/pcap"
@@ -20,12 +20,16 @@ type Buffer struct {
 type Buffers map[string]Buffer
 
 type Result_data struct {
-	MaxPacketNum int
-	AccessCount  int
-	CsCount      int
-	BufMax 		 int
-	AccessPers   []int
-	EndFlag      bool
+	MaxPacketNum 	int
+	AccessCount  	int
+	CurrentSecCount int
+	BufMax 		 	int
+	AccessPers   	[]int
+	EndFlag      	bool
+}
+
+func GetDuration(first time.Time, now time.Time) float64 {
+	return now.Sub(first).Seconds()
 }
 
 func (buf Buffers) CheckBufferTime(bufList []string, currentTime time.Time, time_width float64, result Result_data) (Buffers, []string, Result_data) {
@@ -33,11 +37,11 @@ func (buf Buffers) CheckBufferTime(bufList []string, currentTime time.Time, time
 	for _, k := range bufList {
 		if GetDuration(buf[k].FirstTime, currentTime) > time_width || result.EndFlag == true {
 			result.AccessCount++
-			result.AccessPers[result.CsCount]++
+			result.AccessPers[result.CurrentSecCount]++
 			if result.MaxPacketNum < len(*(buf[k].TimeList)) {
 				result.MaxPacketNum = len(*(buf[k].TimeList))
 			}
-			fmt.Println(len(*(buf[k].TimeList)))
+			// fmt.Println(len(*(buf[k].TimeList)))
 			delete(buf, k)
 			i++
 			continue
@@ -51,9 +55,9 @@ func (buf Buffers) CheckBufferTime(bufList []string, currentTime time.Time, time
 }
 
 func CheckCurrentSec(std_time time.Time, currentTime time.Time, time_width float64, result Result_data) Result_data {
-	if GetDuration(std_time, currentTime) > float64(result.CsCount+1)*time_width {
+	if GetDuration(std_time, currentTime) > float64(result.CurrentSecCount+1)*time_width {
 		result.AccessPers = append(result.AccessPers,0)
-		result.CsCount++
+		result.CurrentSecCount++
 		return result
 	}
 	return result
