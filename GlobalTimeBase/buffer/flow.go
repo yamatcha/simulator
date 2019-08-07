@@ -46,7 +46,7 @@ func (buf Buffers) CheckBufferTime(bufList []string, currentTime time.Time, time
 			i++
 			continue
 		}
-		if len(bufList)>result.BufMax{
+		if len(bufList[i:])>result.BufMax{
 			result.BufMax = len(bufList)
 		}
 		return buf, bufList[i:],result

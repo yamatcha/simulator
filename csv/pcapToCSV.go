@@ -2,7 +2,7 @@ package main
 
 import (
 	"./Info"
-	// "fmt"
+	"fmt"
 	"github.com/google/gopacket"
 	// "github.com/google/gopacket/layers"
 	"github.com/google/gopacket/pcap"
@@ -25,8 +25,8 @@ var (
 )
 
 const (
-	pcapFile string = "../pcap/201704122345.pcap"
-	// pcapFile string = "../pcap/201907031400.pcap"
+	// pcapFile string = "../pcap/201704122345.pcap"
+	pcapFile string = "../pcap/201907031400.pcap"
 	// pcapFile string  = "../pcap/http.pcap"
 	perSec   float64 = 1.0
 	maxSec   int     = 900
@@ -58,7 +58,7 @@ func main() {
 	writer := csv.NewWriter(file)
 	packetSource := gopacket.NewPacketSource(handle, handle.LinkType())
 	i:=0
-	for i = 0; ; i++ {
+	for ; ;  {
 		packet, err := packetSource.NextPacket()
 		if err == io.EOF {
 			break
@@ -69,9 +69,11 @@ func main() {
 		currentTime = Info.GetTime(packet).Format(time.RFC3339Nano)
 		fiveTuple := Info.GetFiveTuple(packet)
 		if fiveTuple !=""{
+			i++
 			// fmt.Println(fiveTuple,currentTime)
 			writer.Write([]string{fiveTuple,currentTime})
 		}
 	}
+	fmt.Println(i)
 	writer.Flush()
 }

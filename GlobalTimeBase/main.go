@@ -7,7 +7,7 @@ import (
 	// "github.com/google/gopacket/layers"
 	"./buffer"
 	// "net"
-	// "io"
+	"io"
 	"log"
 	"time"
 	// "sort"
@@ -58,8 +58,10 @@ func main() {
 	i := 0
 	for i = 0; ; i++ {
 		line, err = reader.Read()
-		if err != nil {
+		if err==io.EOF{
 			break
+		}else if err != nil {
+			panic(err)
 		}
 		fiveTuple := line[0]
 		currentTime, _ = time.Parse(time.RFC3339Nano, line[1])
