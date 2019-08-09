@@ -22,9 +22,9 @@ var (
 )
 
 const (
-	// csvpath string  = "./csv/http.csv"
-	// csvpath string = "./csv/201704122345.csv"
-	csvpath string = "./csv/201907031400.csv"
+	// csvpath string  = "../csv/http.csv"
+	// csvpath string = "../csv/201704122345.csv"
+	csvpath string = "../csv/201907031400.csv"
 	perSec  float64 = 1.0
 	maxSec  int     = 900
 )

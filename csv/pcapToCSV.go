@@ -2,7 +2,7 @@ package main
 
 import (
 	"./Info"
-	"fmt"
+	// "fmt"
 	"github.com/google/gopacket"
 	// "github.com/google/gopacket/layers"
 	"github.com/google/gopacket/pcap"
@@ -70,10 +70,8 @@ func main() {
 		fiveTuple := Info.GetFiveTuple(packet)
 		if fiveTuple !=""{
 			i++
-			// fmt.Println(fiveTuple,currentTime)
 			writer.Write([]string{fiveTuple,currentTime})
 		}
 	}
-	fmt.Println(i)
 	writer.Flush()
 }
