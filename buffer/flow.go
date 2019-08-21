@@ -24,6 +24,7 @@ type Result_data struct {
 	AccessCount  	int
 	CurrentSecCount int
 	BufMax 		 	int
+	PacketNumAll 	int
 	AccessPers   	[]int
 	EndFlag      	bool
 }

@@ -48,7 +48,7 @@ func main() {
 	defer handle.Close()
 
 	name := strings.Split(strings.Split(pcapFile,"/")[2],".")[0]
-	file, err := os.OpenFile("./"+name+".csv", os.O_WRONLY|os.O_CREATE, 0600)
+	file, err := os.OpenFile("../"+name+".csv", os.O_WRONLY|os.O_CREATE, 0600)
 	failOnError(err)
 	defer file.Close()
 
