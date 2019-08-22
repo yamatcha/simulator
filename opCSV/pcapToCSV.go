@@ -26,7 +26,7 @@ var (
 
 const (
 	// pcapFile string = "../pcap/201704122345.pcap"
-	pcapFile string = "../pcap/201907031400.pcap"
+	pcapFile string = "../../pcap/201907031400.pcap"
 	// pcapFile string  = "../pcap/http.pcap"
 	perSec   float64 = 1.0
 	maxSec   int     = 900
@@ -47,8 +47,8 @@ func main() {
 	}
 	defer handle.Close()
 
-	name := strings.Split(strings.Split(pcapFile,"/")[2],".")[0]
-	file, err := os.OpenFile("../"+name+".csv", os.O_WRONLY|os.O_CREATE, 0600)
+	name := strings.Split(strings.Split(pcapFile,"/")[3],".")[0]
+	file, err := os.OpenFile("../../csv/"+name+".csv", os.O_WRONLY|os.O_CREATE, 0600)
 	failOnError(err)
 	defer file.Close()
 

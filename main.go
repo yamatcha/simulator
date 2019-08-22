@@ -8,7 +8,7 @@ import (
 	"./buffer"
 	// "net"
 	"io"
-	"log"
+	// "log"
 	"time"
 	// "sort"
 	"flag"
@@ -43,10 +43,6 @@ func packetTimeBase(buf buffer.Buffers, bufList []string, result buffer.Result_d
 	if err != nil {
 		panic(err)
 	}
-
-	if err != nil {
-		log.Fatal(err)
-	}
 	defer file.Close()
 
 	reader := csv.NewReader(file)
@@ -63,8 +59,6 @@ func packetTimeBase(buf buffer.Buffers, bufList []string, result buffer.Result_d
 		}
 		fiveTuple := line[0]
 		currentTime, _ = time.Parse(time.RFC3339Nano, line[1])
-		// fmt.Println("["+line[1]+"]")
-		// fmt.Println(currentTime)
 		if i == 0 {
 			std_time = currentTime
 		}
@@ -93,10 +87,6 @@ func globalTimeBase(buf buffer.Buffers, bufList []string, result buffer.Result_d
 	if err != nil {
 		panic(err)
 	}
-
-	if err != nil {
-		log.Fatal(err)
-	}
 	defer file.Close()
 
 	reader := csv.NewReader(file)
@@ -113,20 +103,15 @@ func globalTimeBase(buf buffer.Buffers, bufList []string, result buffer.Result_d
 		}
 		fiveTuple := line[0]
 		currentTime, _ = time.Parse(time.RFC3339Nano, line[1])
-		// fmt.Println("["+line[1]+"]")
-		// fmt.Println(currentTime)
 		if i == 0 {
 			std_time = currentTime
 		}
-		buf, bufList, result = buf.CheckBufferTime(bufList, currentTime, time_width, result)
-		if result.CurrentSecCount != int(float64(maxSec)/perSec) {
-			result = buffer.CheckCurrentSec(std_time, currentTime, perSec, result)
-		}
+		buf, bufList, result = buf.CheckGlobalTime(bufList, std_time, currentTime, time_width, result)
 		buf, bufList = buf.AppendBuffer(bufList, currentTime, fiveTuple)
 	}
 	result.EndFlag = true
 	result.PacketNumAll = i
-	buf, bufList, result = buf.CheckBufferTime(bufList, currentTime, time_width, result)
+	buf, bufList, result = buf.CheckGlobalTime(bufList, std_time,currentTime, time_width, result)
 	return buf, bufList, result
 }
 
@@ -142,10 +127,10 @@ func main(){
 	
 	// print result
 
-	fmt.Println(result.BufMax)
-	// for i,v := range result.AccessPers{
-	// 	fmt.Println(float64(i+1)*(perSec),v)
-	// }
+	// fmt.Println(result.BufMax)
+	for i,v := range result.AccessPers{
+		fmt.Println(float64(i+1)*(perSec),v)
+	}
 	// fmt.Println(result.MaxPacketNum, result.AccessCount, float64(result.AccessCount)/float64(result.PacketNumAll),result.PacketNumAll)
 	
 }

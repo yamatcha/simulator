@@ -77,3 +77,19 @@ func (buf Buffers) AppendBuffer(bufList []string, currentTime time.Time, fivetup
 	}
 	return buf, bufList
 }
+
+
+
+//using in Global time base func
+
+func(buf Buffers) CheckGlobalTime(bufList []string, std_time time.Time, currentTime time.Time, time_width float64, result Result_data) (Buffers, []string, Result_data) {
+	if GetDuration(std_time, currentTime) > float64(result.CurrentSecCount+1)*time_width {
+		result.AccessPers = append(result.AccessPers,0)
+		result.CurrentSecCount++
+		bufList=[]string{}
+		buf=Buffers{}
+	}
+	result.AccessCount++
+	result.AccessPers[result.CurrentSecCount]++
+	return buf,bufList,result
+}
