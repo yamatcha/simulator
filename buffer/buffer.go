@@ -13,20 +13,20 @@ import (
 )
 
 type Buffer struct {
-	FirstTime  time.Time
+	FirstTime time.Time
 	TimeList  *[]float64
 }
 
 type Buffers map[string]Buffer
 
 type Result_data struct {
-	MaxPacketNum 	int
-	AccessCount  	int
+	MaxPacketNum    int
+	AccessCount     int
 	CurrentSecCount int
-	BufMax 		 	int
-	PacketNumAll 	int
-	AccessPers   	[]int
-	EndFlag      	bool
+	BufMax          int
+	PacketNumAll    int
+	AccessPers      []int
+	EndFlag         bool
 }
 
 func GetDuration(first time.Time, now time.Time) float64 {
@@ -47,24 +47,21 @@ func (buf Buffers) CheckBufferTime(bufList []string, currentTime time.Time, time
 			i++
 			continue
 		}
-		if len(bufList[i:])>result.BufMax{
-			result.BufMax = len(bufList)
-		}
-		return buf, bufList[i:],result
+		return buf, bufList[i:], result
 	}
 	return buf, nil, result
 }
 
 func CheckCurrentSec(std_time time.Time, currentTime time.Time, time_width float64, result Result_data) Result_data {
 	if GetDuration(std_time, currentTime) > float64(result.CurrentSecCount+1)*time_width {
-		result.AccessPers = append(result.AccessPers,0)
+		result.AccessPers = append(result.AccessPers, 0)
 		result.CurrentSecCount++
 		return result
 	}
 	return result
 }
 
-func (buf Buffers) AppendBuffer(bufList []string, currentTime time.Time, fivetuple string) (Buffers, []string) {
+func (buf Buffers) AppendBuffer(bufList []string, currentTime time.Time, fivetuple string, result Result_data) (Buffers, []string, Result_data) {
 	_, ok := buf[fivetuple]
 	if !ok {
 		new_timelist := []float64{0.0}
@@ -74,22 +71,24 @@ func (buf Buffers) AppendBuffer(bufList []string, currentTime time.Time, fivetup
 	} else {
 		b := buf[fivetuple]
 		*(b.TimeList) = append(*(b.TimeList), GetDuration(b.FirstTime, currentTime))
+
+		if len(bufList) > result.BufMax {
+			result.BufMax = len(bufList)
+		}
 	}
-	return buf, bufList
+	return buf, bufList, result
 }
-
-
 
 //using in Global time base func
 
-func(buf Buffers) CheckGlobalTime(bufList []string, std_time time.Time, currentTime time.Time, time_width float64, result Result_data) (Buffers, []string, Result_data) {
+func (buf Buffers) CheckGlobalTime(bufList []string, std_time time.Time, currentTime time.Time, time_width float64, result Result_data) (Buffers, []string, Result_data) {
 	if GetDuration(std_time, currentTime) > float64(result.CurrentSecCount+1)*time_width {
-		result.AccessPers = append(result.AccessPers,0)
+		result.AccessPers = append(result.AccessPers, 0)
 		result.CurrentSecCount++
-		bufList=[]string{}
-		buf=Buffers{}
+		bufList = []string{}
+		buf = Buffers{}
 	}
 	result.AccessCount++
 	result.AccessPers[result.CurrentSecCount]++
-	return buf,bufList,result
+	return buf, bufList, result
 }
