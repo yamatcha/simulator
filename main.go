@@ -30,7 +30,7 @@ const (
 )
 
 func packetTimeBase(buf buffer.Buffers, bufList []string, result buffer.ResultData) (buffer.Buffers, []string, buffer.ResultData) {
-	var stdTime time.Time
+	var startTime time.Time
 	var currentTime time.Time
 
 	// read time width and buffer size
@@ -59,21 +59,21 @@ func packetTimeBase(buf buffer.Buffers, bufList []string, result buffer.ResultDa
 		fiveTuple := line[0]
 		currentTime, _ = time.Parse(time.RFC3339Nano, line[1])
 		if i == 0 {
-			stdTime = currentTime
+			startTime = currentTime
 		}
-		buf, bufList, result = buf.CheckBufferTime(bufList, currentTime, timeWidth, result)
+		buf, bufList, result = buf.CheckBufferTime(bufList, currentTime, startTime, timeWidth, perSec, result)
 		if result.CurrentSecCount != int(float64(maxSec)/perSec) {
-			result = buffer.CheckCurrentSec(stdTime, currentTime, perSec, result)
+			result = buffer.CheckCurrentSec(startTime, currentTime, perSec, result)
 		}
 		buf, bufList, result = buf.AppendBuffer(bufList, currentTime, fiveTuple,result)
 	}
 	result.EndFlag = true
-	buf, bufList, result = buf.CheckBufferTime(bufList, currentTime, timeWidth, result)
+	buf, bufList, result = buf.CheckBufferTime(bufList, currentTime, startTime, timeWidth, perSec, result)
 	return buf, bufList, result
 }
 
 func globalTimeBase(buf buffer.Buffers, bufList []string, result buffer.ResultData, ideal bool) (buffer.Buffers, []string, buffer.ResultData) {
-	var stdTime time.Time
+	var startTime time.Time
 	var currentTime time.Time
 
 	// read time width and buffer size
@@ -103,21 +103,21 @@ func globalTimeBase(buf buffer.Buffers, bufList []string, result buffer.ResultDa
 		fiveTuple := line[0]
 		currentTime, _ = time.Parse(time.RFC3339Nano, line[1])
 		if i == 0 {
-			stdTime = currentTime
+			startTime = currentTime
 		}
 		if ideal==false{
-			buf, bufList, result = buf.CheckGlobalTime(bufList, stdTime, currentTime, timeWidth, perSec, result)
+			buf, bufList, result = buf.CheckGlobalTime(bufList, startTime, currentTime, timeWidth, perSec, result)
 		}else {
-			buf, bufList, result = buf.CheckGlobalTimeIdeal(bufList, stdTime, currentTime, timeWidth, perSec, result)
+			buf, bufList, result = buf.CheckGlobalTimeIdeal(bufList, startTime, currentTime, timeWidth, perSec, result)
 		}
 		buf, bufList, result = buf.AppendBuffer(bufList, currentTime, fiveTuple, result)
 	}
 	result.EndFlag = true
 	result.PacketNumAll = i
 	if ideal==false{
-		buf, bufList, result = buf.CheckGlobalTime(bufList, stdTime, currentTime, timeWidth, perSec, result)
+		buf, bufList, result = buf.CheckGlobalTime(bufList, startTime, currentTime, timeWidth, perSec, result)
 	}else {
-		buf, bufList, result = buf.CheckGlobalTimeIdeal(bufList, stdTime, currentTime, timeWidth, perSec, result)
+		buf, bufList, result = buf.CheckGlobalTimeIdeal(bufList, startTime, currentTime, timeWidth, perSec, result)
 	}
 	return buf, bufList, result
 }
@@ -125,7 +125,7 @@ func globalTimeBase(buf buffer.Buffers, bufList []string, result buffer.ResultDa
 func main() {
 	buf := buffer.Buffers{}
 	bufList := []string{}
-	result := buffer.ResultData{0, 0, 0, 0, 0, 0, []int{0}, false}
+	result := buffer.ResultData{0, 0, 0, 0, 0, 0, 0, "", []int{0}, false}
 
 	// buf, bufList, result = packetTimeBase(buf,bufList,result)
 	buf, bufList, result = globalTimeBase(buf, bufList, result, false)
