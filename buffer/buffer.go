@@ -23,7 +23,6 @@ type Buffers map[string]Buffer
 type ResultData struct {
 	MaxPacketNum    int
 	AccessCount     int
-	CurrentSecCount int
 	CurrentTimeCount int
 	BufMax          int
 	PacketNumAll    int
@@ -60,15 +59,6 @@ func (buf Buffers) CheckBufferTime(bufList []string, currentTime time.Time, star
 	return buf, nil, result
 }
 
-func CheckCurrentSec(firstTime time.Time, currentTime time.Time, perSec float64, result ResultData) ResultData {
-	if GetDuration(firstTime, currentTime) > float64(result.CurrentSecCount+1)*perSec {
-		result.AccessPers = append(result.AccessPers, 0)
-		result.CurrentSecCount++
-		return result
-	}
-	return result
-}
-
 func (buf Buffers) AppendBuffer(bufList []string, currentTime time.Time, fivetuple string, result ResultData) (Buffers, []string, ResultData) {
 	_, ok := buf[fivetuple]
 	result.PacketOfAllBuffers++
@@ -100,14 +90,13 @@ func (buf Buffers) CheckGlobalTime(bufList []string, firstTime time.Time, curren
 	if  duration > float64(result.CurrentTimeCount+1)*timeWidth {
 		// fmt.Println(len(bufList))
 		result.AccessCount+=len(bufList)
-		result.AccessPers[result.CurrentSecCount]+=len(bufList)
+		result.AccessPers[len(result.AccessPers)-1]+=len(bufList)
 		bufList = []string{}
 		buf = Buffers{}
 		result.CurrentTimeCount++
 	}
-	if duration > float64(result.CurrentSecCount+1)*perSec{
+	if duration > float64(len(result.AccessPers))*perSec{
 		result.AccessPers = append(result.AccessPers, 0)
-		result.CurrentSecCount++
 	}
 	return buf, bufList, result
 }
@@ -117,7 +106,7 @@ func (buf Buffers) CheckGlobalTimeIdeal(bufList []string, firstTime time.Time, c
 	if  duration > float64(result.CurrentTimeCount+1)*timeWidth {
 		accessCount := result.PacketOfAllBuffers-buf[result.BiggestBufferFiveTuple].len
 		result.AccessCount+= accessCount
-		result.AccessPers[result.CurrentSecCount]+= accessCount
+		result.AccessPers[len(result.AccessPers)]+= accessCount
 		result.AccessCount+=1
 		delete(buf,result.BiggestBufferFiveTuple)
 		bufList = []string{}
@@ -126,9 +115,9 @@ func (buf Buffers) CheckGlobalTimeIdeal(bufList []string, firstTime time.Time, c
 		result.PacketOfAllBuffers=0
 		result.CurrentTimeCount++
 	}
-	if duration > float64(result.CurrentSecCount+1)*perSec{
+	if duration > float64(len(result.AccessPers)+1)*perSec{
 		result.AccessPers = append(result.AccessPers, 0)
-		result.CurrentSecCount++
+		len(result.AccessPers)++
 	}
 	return buf, bufList, result
 }

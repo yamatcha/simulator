@@ -125,7 +125,7 @@ func globalTimeBase(buf buffer.Buffers, bufList []string, result buffer.ResultDa
 func main() {
 	buf := buffer.Buffers{}
 	bufList := []string{}
-	result := buffer.ResultData{0, 0, 0, 0, 0, 0, 0, "", []int{0}, false}
+	result := buffer.ResultData{0, 0, 0, 0, 0, 0, "", []int{0}, false}
 
 	// buf, bufList, result = packetTimeBase(buf,bufList,result)
 	buf, bufList, result = globalTimeBase(buf, bufList, result, false)
