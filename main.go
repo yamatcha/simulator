@@ -62,9 +62,6 @@ func packetTimeBase(buf buffer.Buffers, bufList []string, result buffer.ResultDa
 			startTime = currentTime
 		}
 		buf, bufList, result = buf.CheckBufferTime(bufList, currentTime, startTime, timeWidth, perSec, result)
-		if result.CurrentSecCount != int(float64(maxSec)/perSec) {
-			result = buffer.CheckCurrentSec(startTime, currentTime, perSec, result)
-		}
 		buf, bufList, result = buf.AppendBuffer(bufList, currentTime, fiveTuple,result)
 	}
 	result.EndFlag = true
@@ -79,7 +76,7 @@ func globalTimeBase(buf buffer.Buffers, bufList []string, result buffer.ResultDa
 	// read time width and buffer size
 	flag.Parse()
 	timeWidth, _ := strconv.ParseFloat(flag.Arg(0), 64)
-	// bufsize, _ := strconv.ParseFloat(flag.Arg(1), 64)
+	bufSize, _ := strconv.Atoi(flag.Arg(1))
 
 	// open csv
 	file, err := os.Open(csvpath)
@@ -108,7 +105,7 @@ func globalTimeBase(buf buffer.Buffers, bufList []string, result buffer.ResultDa
 		if ideal==false{
 			buf, bufList, result = buf.CheckGlobalTime(bufList, startTime, currentTime, timeWidth, perSec, result)
 		}else {
-			buf, bufList, result = buf.CheckGlobalTimeIdeal(bufList, startTime, currentTime, timeWidth, perSec, result)
+			buf, bufList, result = buf.CheckGlobalTimeIdeal(bufList, startTime, currentTime, timeWidth, perSec, result,bufSize)
 		}
 		buf, bufList, result = buf.AppendBuffer(bufList, currentTime, fiveTuple, result)
 	}
@@ -117,7 +114,7 @@ func globalTimeBase(buf buffer.Buffers, bufList []string, result buffer.ResultDa
 	if ideal==false{
 		buf, bufList, result = buf.CheckGlobalTime(bufList, startTime, currentTime, timeWidth, perSec, result)
 	}else {
-		buf, bufList, result = buf.CheckGlobalTimeIdeal(bufList, startTime, currentTime, timeWidth, perSec, result)
+		buf, bufList, result = buf.CheckGlobalTimeIdeal(bufList, startTime, currentTime, timeWidth, perSec, result,bufSize)
 	}
 	return buf, bufList, result
 }
@@ -125,17 +122,20 @@ func globalTimeBase(buf buffer.Buffers, bufList []string, result buffer.ResultDa
 func main() {
 	buf := buffer.Buffers{}
 	bufList := []string{}
-	result := buffer.ResultData{0, 0, 0, 0, 0, 0, "", []int{0}, false}
+	result := buffer.ResultData{0, 0, 0, 0, 0, 0, []int{0}, false}
 
 	// buf, bufList, result = packetTimeBase(buf,bufList,result)
-	buf, bufList, result = globalTimeBase(buf, bufList, result, false)
+	// buf, bufList, result = globalTimeBase(buf, bufList, result, false)
+	buf, bufList, result = globalTimeBase(buf, bufList, result, true)
 
 	// print result
 
 	// fmt.Println(result.BufMax)
+
 	for i, v := range result.AccessPers {
 		fmt.Println(float64(i+1)*(perSec), v)
 	}
+
 	// fmt.Println(result.MaxPacketNum, result.AccessCount, float64(result.AccessCount)/float64(result.PacketNumAll),result.PacketNumAll)
 
 }

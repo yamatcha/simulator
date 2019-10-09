@@ -9,12 +9,13 @@ import (
 	// "io"
 	// "log"
 	// "reflect"
+	"sort"
 	"time"
 )
 
 type Buffer struct {
 	FirstTime time.Time
-	TimeList  *[]float64
+	TimeList  []float64
 	len 		int
 }
 
@@ -27,7 +28,6 @@ type ResultData struct {
 	BufMax          int
 	PacketNumAll    int
 	PacketOfAllBuffers int
-	BiggestBufferFiveTuple string
 	AccessPers      []int
 	EndFlag         bool
 }
@@ -46,8 +46,8 @@ func (buf Buffers) CheckBufferTime(bufList []string, currentTime time.Time, star
 				result.AccessPers = append(result.AccessPers, 0)				
 			}
 			result.AccessPers[currentSec]++
-			if result.MaxPacketNum < len(*(buf[k].TimeList)) {
-				result.MaxPacketNum = len(*(buf[k].TimeList))
+			if result.MaxPacketNum < len((buf[k].TimeList)) {
+				result.MaxPacketNum = len((buf[k].TimeList))
 			}
 			// fmt.Println(len(*(buf[k].TimeList)))
 			delete(buf, k)
@@ -64,22 +64,20 @@ func (buf Buffers) AppendBuffer(bufList []string, currentTime time.Time, fivetup
 	result.PacketOfAllBuffers++
 	if !ok {
 		new_timelist := []float64{0.0}
-		newbuf := Buffer{currentTime, &new_timelist, 1}
+		newbuf := Buffer{currentTime, new_timelist, 1}
 		buf[fivetuple] = newbuf
 		bufList = append(bufList, fivetuple)
-
-		//for ideal simulator
-		if buf[result.BiggestBufferFiveTuple].len<buf[fivetuple].len{
-			result.BiggestBufferFiveTuple=fivetuple
-		}
 	} else {
 		b := buf[fivetuple]
-		*(b.TimeList) = append(*(b.TimeList), GetDuration(b.FirstTime, currentTime))
-		b.len++
+		newbuf := Buffer{b.FirstTime,(append((b.TimeList), GetDuration(b.FirstTime, currentTime))),b.len+1}
+		// *(b.TimeList) = append(*(b.TimeList), GetDuration(b.FirstTime, currentTime))
+		// b.len++
+		buf[fivetuple]=newbuf
 		if len(bufList) > result.BufMax {
 			result.BufMax = len(bufList)
 		}
 	}
+
 	return buf, bufList, result
 }
 
@@ -101,23 +99,69 @@ func (buf Buffers) CheckGlobalTime(bufList []string, firstTime time.Time, curren
 	return buf, bufList, result
 }
 
-func (buf Buffers) CheckGlobalTimeIdeal(bufList []string, firstTime time.Time, currentTime time.Time, timeWidth float64, perSec float64, result ResultData) (Buffers, []string, ResultData) {
+//for get sorted map
+
+type Entry struct {
+    name  string
+    value int
+}
+type List []Entry
+
+func (buf Buffers) getSortedMap(bufSize int) List{
+	sortedMap:= List{}
+	for k,v := range buf{
+		element:=Entry{k,v.len}
+		sortedMap=append(sortedMap,element)
+	}
+	sort.Sort(sort.Reverse(sortedMap))
+	return sortedMap[:bufSize]
+}
+
+func (l List) Len() int {
+    return len(l)
+}
+
+func (l List) Swap(i, j int) {
+    l[i], l[j] = l[j], l[i]
+}
+
+func (l List) Less(i, j int) bool {
+    if l[i].value == l[j].value {
+        return (l[i].name < l[j].name)
+    } else {
+        return (l[i].value < l[j].value)
+    }
+}
+
+func (l List) getListSum() int{
+	sum:=0
+	for _,v :=range l{
+		sum+=v.value
+	}
+	return sum
+}
+
+// 
+
+func (buf Buffers) CheckGlobalTimeIdeal(bufList []string, firstTime time.Time, currentTime time.Time, timeWidth float64, perSec float64, result ResultData, bufSize int) (Buffers, []string, ResultData) {
 	duration := GetDuration(firstTime, currentTime)
+	if bufSize>len(buf){
+		bufSize=len(buf)
+	}
 	if  duration > float64(result.CurrentTimeCount+1)*timeWidth {
-		accessCount := result.PacketOfAllBuffers-buf[result.BiggestBufferFiveTuple].len
+		sortedMap:=buf.getSortedMap(bufSize)
+		bufferedPacket := sortedMap.getListSum()
+		accessCount := result.PacketOfAllBuffers-bufferedPacket+bufSize
 		result.AccessCount+= accessCount
-		result.AccessPers[len(result.AccessPers)]+= accessCount
-		result.AccessCount+=1
-		delete(buf,result.BiggestBufferFiveTuple)
+		result.AccessPers[len(result.AccessPers)-1]+= accessCount
+		result.AccessCount+=len(sortedMap)
 		bufList = []string{}
 		buf = Buffers{}
-		result.BiggestBufferFiveTuple=""
 		result.PacketOfAllBuffers=0
 		result.CurrentTimeCount++
 	}
 	if duration > float64(len(result.AccessPers)+1)*perSec{
 		result.AccessPers = append(result.AccessPers, 0)
-		len(result.AccessPers)++
 	}
 	return buf, bufList, result
 }
