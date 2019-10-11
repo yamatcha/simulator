@@ -1,7 +1,7 @@
 package buffer
 
 import (
-	// "fmt"
+	"fmt"
 	// "github.com/google/gopacket"
 	// "github.com/google/gopacket/layers"
 	// "github.com/google/gopacket/pcap"
@@ -86,7 +86,7 @@ func (buf Buffers) AppendBuffer(bufList []string, currentTime time.Time, fivetup
 func (buf Buffers) CheckGlobalTime(bufList []string, firstTime time.Time, currentTime time.Time, timeWidth float64, perSec float64, result ResultData) (Buffers, []string, ResultData) {
 	duration := GetDuration(firstTime, currentTime)
 	if  duration > float64(result.CurrentTimeCount+1)*timeWidth {
-		// fmt.Println(len(bufList))
+		fmt.Println(float64(result.CurrentTimeCount+1)*timeWidth ,len(bufList))
 		result.AccessCount+=len(bufList)
 		result.AccessPers[len(result.AccessPers)-1]+=len(bufList)
 		bufList = []string{}
@@ -152,6 +152,7 @@ func (buf Buffers) CheckGlobalTimeIdeal(bufList []string, firstTime time.Time, c
 		sortedMap:=buf.getSortedMap(bufSize)
 		bufferedPacket := sortedMap.getListSum()
 		accessCount := result.PacketOfAllBuffers-bufferedPacket+bufSize
+		fmt.Println(accessCount,len(bufList))
 		result.AccessCount+= accessCount
 		result.AccessPers[len(result.AccessPers)-1]+= accessCount
 		result.AccessCount+=len(sortedMap)
@@ -160,7 +161,7 @@ func (buf Buffers) CheckGlobalTimeIdeal(bufList []string, firstTime time.Time, c
 		result.PacketOfAllBuffers=0
 		result.CurrentTimeCount++
 	}
-	if duration > float64(len(result.AccessPers)+1)*perSec{
+	if duration > float64(len(result.AccessPers))*perSec{
 		result.AccessPers = append(result.AccessPers, 0)
 	}
 	return buf, bufList, result

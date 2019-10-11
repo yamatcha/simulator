@@ -29,13 +29,9 @@ const (
 	maxSec  int     = 900
 )
 
-func packetTimeBase(buf buffer.Buffers, bufList []string, result buffer.ResultData) (buffer.Buffers, []string, buffer.ResultData) {
+func packetTimeBase(buf buffer.Buffers, bufList []string, result buffer.ResultData, timeWidth float64) (buffer.Buffers, []string, buffer.ResultData) {
 	var startTime time.Time
 	var currentTime time.Time
-
-	// read time width and buffer size
-	flag.Parse()
-	timeWidth, _ := strconv.ParseFloat(flag.Arg(0), 64)
 
 	// open csv
 	file, err := os.Open(csvpath)
@@ -69,14 +65,10 @@ func packetTimeBase(buf buffer.Buffers, bufList []string, result buffer.ResultDa
 	return buf, bufList, result
 }
 
-func globalTimeBase(buf buffer.Buffers, bufList []string, result buffer.ResultData, ideal bool) (buffer.Buffers, []string, buffer.ResultData) {
+func globalTimeBase(buf buffer.Buffers, bufList []string, result buffer.ResultData, timeWidth float64, bufSize int, ideal bool) (buffer.Buffers, []string, buffer.ResultData) {
 	var startTime time.Time
 	var currentTime time.Time
 
-	// read time width and buffer size
-	flag.Parse()
-	timeWidth, _ := strconv.ParseFloat(flag.Arg(0), 64)
-	bufSize, _ := strconv.Atoi(flag.Arg(1))
 
 	// open csv
 	file, err := os.Open(csvpath)
@@ -119,22 +111,40 @@ func globalTimeBase(buf buffer.Buffers, bufList []string, result buffer.ResultDa
 	return buf, bufList, result
 }
 
+func printAccessPers(result buffer.ResultData){
+	for i, v := range result.AccessPers {
+		fmt.Println(float64(i+1)*(perSec), v)
+	}
+}
+
 func main() {
 	buf := buffer.Buffers{}
 	bufList := []string{}
 	result := buffer.ResultData{0, 0, 0, 0, 0, 0, []int{0}, false}
 
-	// buf, bufList, result = packetTimeBase(buf,bufList,result)
-	// buf, bufList, result = globalTimeBase(buf, bufList, result, false)
-	buf, bufList, result = globalTimeBase(buf, bufList, result, true)
+
+	// read time width and buffer size
+	flag.Parse()
+	mode, _ :=strconv.Atoi(flag.Arg(0))
+	timeWidth, _ := strconv.ParseFloat(flag.Arg(1), 64)
+	bufSize, _ := strconv.Atoi(flag.Arg(2))
+
+	//select simulator
+	if mode==0{
+		buf, bufList, result = packetTimeBase(buf,bufList,result,timeWidth)
+	}else if mode==1{
+		buf, bufList, result = globalTimeBase(buf, bufList, result, timeWidth,bufSize, false)
+	}else if mode==2{
+		buf, bufList, result = globalTimeBase(buf, bufList, result, timeWidth, bufSize, true)
+	}
+	
+	
 
 	// print result
 
 	// fmt.Println(result.BufMax)
 
-	for i, v := range result.AccessPers {
-		fmt.Println(float64(i+1)*(perSec), v)
-	}
+	// printAccessPers(result)
 
 	// fmt.Println(result.MaxPacketNum, result.AccessCount, float64(result.AccessCount)/float64(result.PacketNumAll),result.PacketNumAll)
 
