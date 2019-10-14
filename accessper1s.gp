@@ -9,7 +9,8 @@ set key font "Arial,10"
 #set yr[0:100]
 set xrange[1:]
 
-plot "test0.txt" using 1:2  w l title "buffer=580",\
-    "test1.txt" using 1:2  w l title "buffer=1000",\
-    "accessper1s_001.dat" using 1:2  w l title "time\_width=0.01",\
-    "accessper1s_0.dat" using 1:2  w l title "time\_width=0",\
+plot "test1.txt" using 1:2  w l title "buffer=580",\
+    "test2.txt" using 1:2  w l title "buffer=1000",\
+    "test1.dat" using 1:2  w l title "buffer=580",\
+    "test2.dat" using 1:2  w l title "buffer=1000",\
+    "accessper1s_0.dat" using 1:2  w l title "time_width=0",\

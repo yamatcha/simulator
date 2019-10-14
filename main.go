@@ -117,6 +117,14 @@ func printAccessPers(result buffer.ResultData){
 	}
 }
 
+func printAcccessPersAvg(result buffer.ResultData){
+	sum := 0
+	for _,v := range result.AccessPers{
+		sum+=v
+	}
+	fmt.Println(sum)
+}
+
 func main() {
 	buf := buffer.Buffers{}
 	bufList := []string{}
@@ -145,6 +153,7 @@ func main() {
 	// fmt.Println(result.BufMax)
 
 	// printAccessPers(result)
+	// printAcccessPersAvg(result)
 
 	// fmt.Println(result.MaxPacketNum, result.AccessCount, float64(result.AccessCount)/float64(result.PacketNumAll),result.PacketNumAll)
 
