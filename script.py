@@ -4,13 +4,13 @@ import requests
 import datetime
 
 cmd=['go', 'run', 'main.go']
-option=[ '1','0.01']
-args=[option]
+option=[ '2','0.01']
+args=[option+['10']]
 
 nowTime=datetime.datetime.now().isoformat()
 
-# for i in range(1,1000):
-#     if (i<=10 and i%5==0) or  (10< i and i<=100 and i%10==0) or (100 <i and i<=1000 and i%100==0):
+# for i in range(0,500):
+#     if i==0 or (i%10==0):
 #         print([str(i)])
 #         args.append(option+[str(i)])
 
@@ -18,10 +18,14 @@ print(args)
 
 
 for i in range(len(args)):
-    path='./bufSize.dat'
+    path='./test'+str(i+2)+'.dat'
     with open(path,mode='w') as f:
         print(cmd+args[i])
         r=subprocess.run(cmd+args[i],stdout=f)
+        # print(str(args[i][2]))
+        # r=subprocess.check_output(cmd+args[i]).decode('utf-8')
+        # f.write(str(args[i][2])+' '+r)
+
 
 url = "https://notify-api.line.me/api/notify"
 token = "WcudzQXjoEgLad8EA68AkLe98Tl5mxEjbVhgOjdBIZH"

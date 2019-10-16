@@ -29,10 +29,7 @@ const (
 	maxSec  int     = 900
 )
 
-func packetTimeBase(buf buffer.Buffers, bufList []string, result buffer.ResultData, timeWidth float64) (buffer.Buffers, []string, buffer.ResultData) {
-	var startTime time.Time
-	var currentTime time.Time
-
+func packetTimeBase(buf buffer.Buffers, bufList []string, result buffer.ResultData, params buffer.Params) (buffer.Buffers, []string, buffer.ResultData) {
 	// open csv
 	file, err := os.Open(csvpath)
 	if err != nil {
@@ -53,23 +50,19 @@ func packetTimeBase(buf buffer.Buffers, bufList []string, result buffer.ResultDa
 			panic(err)
 		}
 		fiveTuple := line[0]
-		currentTime, _ = time.Parse(time.RFC3339Nano, line[1])
+		params.CurrentTime, _ = time.Parse(time.RFC3339Nano, line[1])
 		if i == 0 {
-			startTime = currentTime
+			params.FirstTime = params.CurrentTime
 		}
-		buf, bufList, result = buf.CheckBufferTime(bufList, currentTime, startTime, timeWidth, perSec, result)
-		buf, bufList, result = buf.AppendBuffer(bufList, currentTime, fiveTuple,result)
+		buf, bufList, result = buf.CheckBufferTime(bufList, params, result)
+		buf, bufList, result = buf.AppendBuffer(bufList, params, fiveTuple, result)
 	}
 	result.EndFlag = true
-	buf, bufList, result = buf.CheckBufferTime(bufList, currentTime, startTime, timeWidth, perSec, result)
+	buf, bufList, result = buf.CheckBufferTime(bufList, params, result)
 	return buf, bufList, result
 }
 
-func globalTimeBase(buf buffer.Buffers, bufList []string, result buffer.ResultData, timeWidth float64, bufSize int, ideal bool) (buffer.Buffers, []string, buffer.ResultData) {
-	var startTime time.Time
-	var currentTime time.Time
-
-
+func globalTimeBase(buf buffer.Buffers, bufList []string, result buffer.ResultData, params buffer.Params, ideal bool) (buffer.Buffers, []string, buffer.ResultData) {
 	// open csv
 	file, err := os.Open(csvpath)
 	if err != nil {
@@ -90,37 +83,37 @@ func globalTimeBase(buf buffer.Buffers, bufList []string, result buffer.ResultDa
 			panic(err)
 		}
 		fiveTuple := line[0]
-		currentTime, _ = time.Parse(time.RFC3339Nano, line[1])
+		params.CurrentTime, _ = time.Parse(time.RFC3339Nano, line[1])
 		if i == 0 {
-			startTime = currentTime
+			params.FirstTime = params.CurrentTime
 		}
-		if ideal==false{
-			buf, bufList, result = buf.CheckGlobalTime(bufList, startTime, currentTime, timeWidth, perSec, result)
-		}else {
-			buf, bufList, result = buf.CheckGlobalTimeIdeal(bufList, startTime, currentTime, timeWidth, perSec, result,bufSize)
+		if ideal == false {
+			buf, bufList, result = buf.CheckGlobalTime(bufList, params, result)
+		} else {
+			buf, bufList, result = buf.CheckGlobalTimeIdeal(bufList, params, result)
 		}
-		buf, bufList, result = buf.AppendBuffer(bufList, currentTime, fiveTuple, result)
+		buf, bufList, result = buf.AppendBuffer(bufList, params, fiveTuple, result)
 	}
 	result.EndFlag = true
 	result.PacketNumAll = i
-	if ideal==false{
-		buf, bufList, result = buf.CheckGlobalTime(bufList, startTime, currentTime, timeWidth, perSec, result)
-	}else {
-		buf, bufList, result = buf.CheckGlobalTimeIdeal(bufList, startTime, currentTime, timeWidth, perSec, result,bufSize)
+	if ideal == false {
+		buf, bufList, result = buf.CheckGlobalTime(bufList, params, result)
+	} else {
+		buf, bufList, result = buf.CheckGlobalTimeIdeal(bufList, params, result)
 	}
 	return buf, bufList, result
 }
 
-func printAccessPers(result buffer.ResultData){
+func printAccessPers(result buffer.ResultData) {
 	for i, v := range result.AccessPers {
 		fmt.Println(float64(i+1)*(perSec), v)
 	}
 }
 
-func printAcccessPersAvg(result buffer.ResultData){
+func printAcccessPersAvg(result buffer.ResultData) {
 	sum := 0
-	for _,v := range result.AccessPers{
-		sum+=v
+	for _, v := range result.AccessPers {
+		sum += v
 	}
 	fmt.Println(sum)
 }
@@ -128,29 +121,29 @@ func printAcccessPersAvg(result buffer.ResultData){
 func main() {
 	buf := buffer.Buffers{}
 	bufList := []string{}
-	result := buffer.ResultData{0, 0, 0, 0, 0, 0, []int{0}, false}
-
+	result := buffer.ResultData{0, 0, 0, 0, 0, 0, 0, []int{0}, false}
+	params := buffer.Params{time.Time{}, time.Time{}, 0, 0, 0, false}
 
 	// read time width and buffer size
 	flag.Parse()
-	mode, _ :=strconv.Atoi(flag.Arg(0))
-	timeWidth, _ := strconv.ParseFloat(flag.Arg(1), 64)
-	bufSize, _ := strconv.Atoi(flag.Arg(2))
+	mode, _ := strconv.Atoi(flag.Arg(0))
+	params.TimeWidth, _ = strconv.ParseFloat(flag.Arg(1), 64)
+	params.BufSize, _ = strconv.Atoi(flag.Arg(2))
+	params.PerSec = perSec
 
 	//select simulator
-	if mode==0{
-		buf, bufList, result = packetTimeBase(buf,bufList,result,timeWidth)
-	}else if mode==1{
-		buf, bufList, result = globalTimeBase(buf, bufList, result, timeWidth,bufSize, false)
-	}else if mode==2{
-		buf, bufList, result = globalTimeBase(buf, bufList, result, timeWidth, bufSize, true)
+	if mode == 0 {
+		buf, bufList, result = packetTimeBase(buf, bufList, result, params)
+	} else if mode == 1 {
+		buf, bufList, result = globalTimeBase(buf, bufList, result, params, false)
+	} else if mode == 2 {
+		buf, bufList, result = globalTimeBase(buf, bufList, result, params, true)
 	}
-	
-	
 
 	// print result
 
 	// fmt.Println(result.BufMax)
+	fmt.Println(result.EntryNum)
 
 	// printAccessPers(result)
 	// printAcccessPersAvg(result)
