@@ -104,6 +104,7 @@ func globalTimeBase(buf buffer.Buffers, bufList []string, result buffer.ResultDa
 	return buf, bufList, result
 }
 
+// function for display result of list
 func printAccessPers(result buffer.ResultData) {
 	for i, v := range result.AccessPers {
 		fmt.Println(float64(i+1)*(perSec), v)
@@ -117,11 +118,20 @@ func printAcccessPersAvg(result buffer.ResultData) {
 	}
 	fmt.Println(sum)
 }
+func printEntryNums(result buffer.ResultData) {
+	for i, l := range result.EntryNums {
+		fmt.Print(strconv.Itoa(i) + " ")
+		for _, v := range l {
+			fmt.Print(strconv.Itoa(v) + " ")
+		}
+		fmt.Println()
+	}
+}
 
 func main() {
 	buf := buffer.Buffers{}
 	bufList := []string{}
-	result := buffer.ResultData{0, 0, 0, 0, 0, 0, 0, []int{0}, false}
+	result := buffer.ResultData{0, 0, 0, 0, 0, 0, []int{0}, [][]int{make([]int, 10)}, false}
 	params := buffer.Params{time.Time{}, time.Time{}, 0, 0, 0, false}
 
 	// read time width and buffer size
@@ -138,15 +148,19 @@ func main() {
 		buf, bufList, result = globalTimeBase(buf, bufList, result, params, false)
 	} else if mode == 2 {
 		buf, bufList, result = globalTimeBase(buf, bufList, result, params, true)
+	} else if mode == 3 {
+		params.Stupid = true
+		buf, bufList, result = globalTimeBase(buf, bufList, result, params, true)
 	}
 
 	// print result
 
 	// fmt.Println(result.BufMax)
-	fmt.Println(result.EntryNum)
+	// fmt.Println(result.EntryNum)
 
 	// printAccessPers(result)
-	// printAcccessPersAvg(result)
+	printAcccessPersAvg(result)
+	// printEntryNums(result)
 
 	// fmt.Println(result.MaxPacketNum, result.AccessCount, float64(result.AccessCount)/float64(result.PacketNumAll),result.PacketNumAll)
 

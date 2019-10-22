@@ -1,7 +1,7 @@
 package buffer
 
 import (
-	"fmt"
+	// "fmt"
 	// "github.com/google/gopacket"
 	// "github.com/google/gopacket/layers"
 	// "github.com/google/gopacket/pcap"
@@ -26,10 +26,10 @@ type ResultData struct {
 	AccessCount        int
 	CurrentTimeCount   int
 	BufMax             int
-	EntryNum           int
 	PacketNumAll       int
 	PacketOfAllBuffers int
 	AccessPers         []int
+	EntryNums          [][]int
 	EndFlag            bool
 }
 
@@ -39,7 +39,7 @@ type Params struct {
 	PerSec      float64
 	BufSize     int
 	TimeWidth   float64
-	stupid       bool
+	Stupid      bool
 }
 
 func GetDuration(first time.Time, now time.Time) float64 {
@@ -151,20 +151,41 @@ func (l List) getListSum() int {
 	return sum
 }
 
+//using stupid simulation
+func (buf Buffers) getStupidMap(bufList []string, bufSize int) List {
+	sortedMap := List{}
+	count := 0
+	for _, k := range bufList {
+		element := Entry{k, buf[k].len}
+		sortedMap = append(sortedMap, element)
+		count++
+		if count == bufSize {
+			break
+		}
+	}
+	return sortedMap
+}
+
 //
 
 func (buf Buffers) CheckGlobalTimeIdeal(bufList []string, params Params, result ResultData) (Buffers, []string, ResultData) {
 	duration := GetDuration(params.FirstTime, params.CurrentTime)
-
 	if params.BufSize > len(buf) {
 		params.BufSize = len(buf)
 	}
+	sortedMap := List{}
 	if duration > float64(result.CurrentTimeCount+1)*params.TimeWidth {
-		sortedMap := buf.getSortedMap(params.BufSize)
-		if result.EntryNum <= sortedMap[0].value {
-			fmt.Println(sortedMap[0].value)
-			result.EntryNum = sortedMap[0].value
+		if params.Stupid == false {
+			sortedMap = buf.getSortedMap(params.BufSize)
+		} else {
+			sortedMap = buf.getStupidMap(bufList, params.BufSize)
 		}
+		// save the 10 biggest number of entry
+		// for i := 0; i < 10; i++ {
+		// 	fmt.Println(sortedMap)
+		// 	result.EntryNums[len(result.EntryNums)-1][i] += sortedMap[i].value
+		// }
+
 		bufferedPacket := sortedMap.getListSum()
 		accessCount := result.PacketOfAllBuffers - bufferedPacket + params.BufSize
 		// fmt.Println(accessCount,len(bufList))
@@ -178,6 +199,7 @@ func (buf Buffers) CheckGlobalTimeIdeal(bufList []string, params Params, result 
 	}
 	if duration > float64(len(result.AccessPers))*params.PerSec {
 		result.AccessPers = append(result.AccessPers, 0)
+		// result.EntryNums = append(result.EntryNums, make([]int, 10))
 	}
 	return buf, bufList, result
 }
