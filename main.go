@@ -118,11 +118,11 @@ func printAcccessPersAvg(result buffer.ResultData) {
 	}
 	fmt.Println(sum)
 }
-func printEntryNums(result buffer.ResultData) {
-	for i, l := range result.EntryNums {
-		fmt.Print(strconv.Itoa(i) + " ")
-		for _, v := range l {
-			fmt.Print(strconv.Itoa(v) + " ")
+func printEntryNums(result buffer.ResultData,timeWidth float64) {
+	for i, _ := range result.EntryNums[0] {
+		fmt.Print(strconv.FormatFloat(float64(i)*timeWidth,'f',2,64) + " ")
+		for j:=0;j<10;j++ {
+			fmt.Print(strconv.Itoa(result.EntryNums[j][i])+ " ")
 		}
 		fmt.Println()
 	}
@@ -131,7 +131,7 @@ func printEntryNums(result buffer.ResultData) {
 func main() {
 	buf := buffer.Buffers{}
 	bufList := []string{}
-	result := buffer.ResultData{0, 0, 0, 0, 0, 0, []int{0}, [][]int{make([]int, 10)}, false}
+	result := buffer.ResultData{0, 0, 0, 0, 0, 0, []int{0}, make([][]int,10), false}
 	params := buffer.Params{time.Time{}, time.Time{}, 0, 0, 0, false}
 
 	// read time width and buffer size
@@ -158,9 +158,9 @@ func main() {
 	// fmt.Println(result.BufMax)
 	// fmt.Println(result.EntryNum)
 
-	// printAccessPers(result)
-	printAcccessPersAvg(result)
-	// printEntryNums(result)
+	printAccessPers(result)
+	// printAcccessPersAvg(result)
+	// printEntryNums(result, params.TimeWidth)
 
 	// fmt.Println(result.MaxPacketNum, result.AccessCount, float64(result.AccessCount)/float64(result.PacketNumAll),result.PacketNumAll)
 

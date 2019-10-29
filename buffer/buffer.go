@@ -181,11 +181,11 @@ func (buf Buffers) CheckGlobalTimeIdeal(bufList []string, params Params, result 
 			sortedMap = buf.getStupidMap(bufList, params.BufSize)
 		}
 		// save the 10 biggest number of entry
-		// for i := 0; i < 10; i++ {
-		// 	fmt.Println(sortedMap)
-		// 	result.EntryNums[len(result.EntryNums)-1][i] += sortedMap[i].value
-		// }
-
+		for i := 0; i < 10; i++ {
+			// fmt.Println(sortedMap)
+			// result.EntryNums[len(result.EntryNums)-1][i] += sortedMap[i].value
+			result.EntryNums[i] = append(result.EntryNums[i],sortedMap[i].value)
+		}
 		bufferedPacket := sortedMap.getListSum()
 		accessCount := result.PacketOfAllBuffers - bufferedPacket + params.BufSize
 		// fmt.Println(accessCount,len(bufList))
