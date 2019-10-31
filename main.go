@@ -9,7 +9,7 @@ import (
 	// "net"
 	"io"
 	// "log"
-	"time"
+	// "time"
 	// "sort"
 	"flag"
 	"strconv"
@@ -24,9 +24,10 @@ var (
 const (
 	// csvpath string  = "../csv/http.csv"
 	// csvpath string = "../csv/201704122345.csv"
-	csvpath string  = "../csv/201907031400.csv"
+	// csvpath string  = "../csv/2019070314002.csv"
+	csvpath string ="../csv/test.csv"
 	perSec  float64 = 1.0
-	maxSec  int     = 900
+	// maxSec  int     = 900
 )
 
 func packetTimeBase(buf buffer.Buffers, bufList []string, result buffer.ResultData, params buffer.Params) (buffer.Buffers, []string, buffer.ResultData) {
@@ -50,10 +51,7 @@ func packetTimeBase(buf buffer.Buffers, bufList []string, result buffer.ResultDa
 			panic(err)
 		}
 		fiveTuple := line[0]
-		params.CurrentTime, _ = time.Parse(time.RFC3339Nano, line[1])
-		if i == 0 {
-			params.FirstTime = params.CurrentTime
-		}
+		params.CurrentTime, _ = strconv.ParseFloat(line[1],64)
 		buf, bufList, result = buf.CheckBufferTime(bufList, params, result)
 		buf, bufList, result = buf.AppendBuffer(bufList, params, fiveTuple, result)
 	}
@@ -83,10 +81,7 @@ func globalTimeBase(buf buffer.Buffers, bufList []string, result buffer.ResultDa
 			panic(err)
 		}
 		fiveTuple := line[0]
-		params.CurrentTime, _ = time.Parse(time.RFC3339Nano, line[1])
-		if i == 0 {
-			params.FirstTime = params.CurrentTime
-		}
+		params.CurrentTime, _ = strconv.ParseFloat(line[1],64)
 		if ideal == false {
 			buf, bufList, result = buf.CheckGlobalTime(bufList, params, result)
 		} else {
@@ -111,7 +106,7 @@ func printAccessPers(result buffer.ResultData) {
 	}
 }
 
-func printAcccessPersAvg(result buffer.ResultData) {
+func printAcccessPersTotal(result buffer.ResultData) {
 	sum := 0
 	for _, v := range result.AccessPers {
 		sum += v
@@ -132,7 +127,7 @@ func main() {
 	buf := buffer.Buffers{}
 	bufList := []string{}
 	result := buffer.ResultData{0, 0, 0, 0, 0, 0, []int{0}, make([][]int,10), false}
-	params := buffer.Params{time.Time{}, time.Time{}, 0, 0, 0, false}
+	params := buffer.Params{0.0, 0, 0, 0, false}
 
 	// read time width and buffer size
 	flag.Parse()
@@ -159,7 +154,7 @@ func main() {
 	// fmt.Println(result.EntryNum)
 
 	printAccessPers(result)
-	// printAcccessPersAvg(result)
+	// printAcccessPersTotal(result)
 	// printEntryNums(result, params.TimeWidth)
 
 	// fmt.Println(result.MaxPacketNum, result.AccessCount, float64(result.AccessCount)/float64(result.PacketNumAll),result.PacketNumAll)
