@@ -5,7 +5,7 @@ import (
 	// "github.com/google/gopacket"
 	"os"
 	// "github.com/google/gopacket/layers"
-	"./buffer"
+	"github.com/yamatcha/simulator/buffer"
 	// "net"
 	"io"
 	// "log"
@@ -25,7 +25,8 @@ const (
 	// csvpath string  = "../csv/http.csv"
 	// csvpath string = "../csv/201704122345.csv"
 	// csvpath string  = "../csv/2019070314002.csv"
-	csvpath string ="../csv/test.csv"
+	// csvpath string ="../csv/test.csv"
+	csvpath string ="./opCSV/chicago20140320-1300.csv"
 	perSec  float64 = 1.0
 	// maxSec  int     = 900
 )

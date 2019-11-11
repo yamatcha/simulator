@@ -51,7 +51,7 @@ func (buf Buffers) CheckBufferTime(bufList []string, params Params, result Resul
 			if int(params.CurrentTime) >= len(result.AccessPers) {
 				result.AccessPers = append(result.AccessPers, 0)
 			}
-			result.AccessPers[len(result.AccessPers)]++
+			result.AccessPers[len(result.AccessPers)-1]++
 			if result.MaxPacketNum < len((buf[k].TimeList)) {
 				result.MaxPacketNum = len((buf[k].TimeList))
 			}

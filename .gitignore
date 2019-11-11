@@ -2,3 +2,6 @@
 *.png
 *.pcap
 *.csv
+pcap/*
+/opCSV/chicago/*
+*.py

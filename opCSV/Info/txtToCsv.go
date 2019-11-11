@@ -1,4 +1,4 @@
-package main
+package Info
 
 import (
 	"fmt"
@@ -7,16 +7,12 @@ import (
 	// "reflect"
 	"bufio"
 	"encoding/csv"
-	"log"
+	// "log"
 )
 
-func failOnError(err error) {
-	if err != nil {
-		log.Fatal("Error:", err)
-	}
-}
 
-func main() {
+
+func txtToCSV() {
 	fp, err := os.Open("../../pcap/sinet_sort.txt")
 	failOnError(err)
 	file, err := os.OpenFile("./test.csv", os.O_WRONLY|os.O_CREATE, 0600)
