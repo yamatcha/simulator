@@ -42,11 +42,11 @@ func failOnError(err error) {
 }
 
 func PcapToCSV() {
-	pcapFile := []string{"./chicago/20140320-130000","./chicago/20140320-130100","./chicago/20140320-130200","./chicago/20140320-130300","./chicago/20140320-130400","./chicago/20140320-130500","./chicago/20140320-130600","./chicago/20140320-130700","./chicago/20140320-130800","./chicago/20140320-130900","./chicago/20140320-131000","./chicago/20140320-131100","./chicago/20140320-131200","./chicago/20140320-131300","./chicago/20140320-131400","./chicago/20140320-131500"}
+	pcapFile := []string{"./chicagoA/20140320-130000","./chicagoA/20140320-130100","./chicagoA/20140320-130200","./chicagoA/20140320-130300","./chicagoA/20140320-130400","./chicagoA/20140320-130500","./chicagoA/20140320-130600","./chicagoA/20140320-130700","./chicagoA/20140320-130800","./chicagoA/20140320-130900","./chicagoA/20140320-131000","./chicagoA/20140320-131100","./chicagoA/20140320-131200","./chicagoA/20140320-131300","./chicagoA/20140320-131400"}
 	// open pcap file and initialize csv
 
 	// name := strings.Split(strings.Split(pcapFile, "/")[3], ".")[0]
-	name := "chicago20140320-1300"
+	name := "chicago20140320-1300A"
 	file, err := os.OpenFile("./"+name+".csv", os.O_WRONLY|os.O_CREATE, 0600)
 	failOnError(err)
 	defer file.Close()

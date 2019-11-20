@@ -1,7 +1,7 @@
 package Info
 
 import (
-	"fmt"
+	// "fmt"
 	"os"
 	"strings"
 	// "reflect"
@@ -12,10 +12,10 @@ import (
 
 
 
-func txtToCSV() {
-	fp, err := os.Open("../../pcap/sinet_sort.txt")
+func TxtToCSV() {
+	fp, err := os.Open("./pcap/sinet/sinet_use.txt")
 	failOnError(err)
-	file, err := os.OpenFile("./test.csv", os.O_WRONLY|os.O_CREATE, 0600)
+	file, err := os.OpenFile("./sinet.csv", os.O_WRONLY|os.O_CREATE, 0600)
 	failOnError(err)
 	err = file.Truncate(0)
 	failOnError(err)
@@ -25,14 +25,18 @@ func txtToCSV() {
 	defer fp.Close()
 	defer file.Close()
 
-	fmt.Println(fp.Name())
+	// fmt.Println(fp.Name())
 
 	scanner := bufio.NewScanner(fp)
 	for scanner.Scan() {
-		fmt.Println(scanner.Text())
+		// fmt.Println(scanner.Text())
 		list := strings.Split(scanner.Text(), " ")
-		list = []string{list[1], list[2], list[3], list[4], list[5], list[0]}
-		writer.Write(list)
+		if (len(list)==8){
+			// fmt.Println(list)
+			list = []string{strings.Join(list[1:6]," "), list[0]}
+			// fmt.Println(list)
+			writer.Write(list)
+		}
 	}
 	writer.Flush()
 }

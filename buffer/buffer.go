@@ -1,7 +1,7 @@
 package buffer
 
 import (
-	// "fmt"
+	"fmt"
 	// "github.com/google/gopacket"
 	// "github.com/google/gopacket/layers"
 	// "github.com/google/gopacket/pcap"
@@ -16,7 +16,7 @@ import (
 type Buffer struct {
 	FirstTime float64
 	TimeList  []float64
-	len       int
+	Len       int
 }
 
 type Buffers map[string]Buffer
@@ -37,11 +37,21 @@ type Params struct {
 	CurrentTime float64
 	PerSec      float64
 	BufSize     int
+	EntrySize     int
 	TimeWidth   float64
 	Stupid      bool
 }
 
 
+func remove(strings []string, search string) []string {
+    result := []string{}
+    for _, v := range strings {
+        if v != search {
+            result = append(result, v)
+        }
+    }
+    return result
+}
 
 func (buf Buffers) CheckBufferTime(bufList []string, params Params, result ResultData) (Buffers, []string, ResultData) {
 	i := 0
@@ -75,12 +85,22 @@ func (buf Buffers) AppendBuffer(bufList []string, params Params, fivetuple strin
 		bufList = append(bufList, fivetuple)
 	} else {
 		b := buf[fivetuple]
-		newbuf := Buffer{b.FirstTime, (append((b.TimeList), (b.FirstTime-params.CurrentTime))), b.len + 1}
+		newbuf := Buffer{b.FirstTime, (append((b.TimeList), (params.CurrentTime-b.FirstTime))), b.Len + 1}
 		// *(b.TimeList) = append(*(b.TimeList), GetDuration(b.FirstTime, params.CurrentTime))
-		// b.len++
+		// b.Len++
 		buf[fivetuple] = newbuf
 		if len(bufList) > result.BufMax {
 			result.BufMax = len(bufList)
+		}
+		if b.Len >= params.EntrySize && params.EntrySize!=0{
+			result.AccessCount++
+			result.AccessCount++
+			result.AccessPers[len(result.AccessPers)-1]++
+			delete(buf,fivetuple)
+			bufList = remove(bufList,fivetuple)
+			if len(buf)!=len(bufList){
+				fmt.Println("error")
+			}
 		}
 	}
 	return buf, bufList, result
@@ -115,7 +135,7 @@ type List []Entry
 func (buf Buffers) getSortedMap(bufSize int) List {
 	sortedMap := List{}
 	for k, v := range buf {
-		element := Entry{k, v.len}
+		element := Entry{k, v.Len}
 		sortedMap = append(sortedMap, element)
 	}
 	sort.Sort(sort.Reverse(sortedMap))
@@ -151,7 +171,7 @@ func (buf Buffers) getStupidMap(bufList []string, bufSize int) List {
 	sortedMap := List{}
 	count := 0
 	for _, k := range bufList {
-		element := Entry{k, buf[k].len}
+		element := Entry{k, buf[k].Len}
 		sortedMap = append(sortedMap, element)
 		count++
 		if count == bufSize {
@@ -167,6 +187,7 @@ func (buf Buffers) CheckGlobalTimeIdeal(bufList []string, params Params, result 
 	if params.BufSize > len(buf) {
 		params.BufSize = len(buf)
 	}
+	fmt.Println(params.BufSize)
 	sortedMap := List{}
 	if params.CurrentTime > float64(result.CurrentTimeCount+1)*params.TimeWidth {
 		if params.Stupid == false {
@@ -175,7 +196,10 @@ func (buf Buffers) CheckGlobalTimeIdeal(bufList []string, params Params, result 
 			sortedMap = buf.getStupidMap(bufList, params.BufSize)
 		}
 		// save the 10 biggest number of entry
-		// for i := 0; i < 10; i++ {
+		// if params.BufSize<=10{
+		// 	fmt.Println(params.CurrentTime)
+		// }
+		// for i := 0; i < 10 && params.BufSize>=10; i++ {
 		// 	result.EntryNums[i] = append(result.EntryNums[i],sortedMap[i].value)
 		// }
 		bufferedPacket := sortedMap.getListSum()
