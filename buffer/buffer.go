@@ -10,12 +10,13 @@ import (
 	// "log"
 	// "reflect"
 	"sort"
+	"math"
 	// "time"
 )
 
 type Buffer struct {
 	FirstTime float64
-	TimeList  []float64
+	// TimeList  []float64
 	Len       int
 }
 
@@ -62,8 +63,8 @@ func (buf Buffers) CheckBufferTime(bufList []string, params Params, result Resul
 				result.AccessPers = append(result.AccessPers, 0)
 			}
 			result.AccessPers[len(result.AccessPers)-1]++
-			if result.MaxPacketNum < len((buf[k].TimeList)) {
-				result.MaxPacketNum = len((buf[k].TimeList))
+			if result.MaxPacketNum < buf[k].Len {
+				result.MaxPacketNum = buf[k].Len
 			}
 			// fmt.Println(len(*(buf[k].TimeList)))
 			delete(buf, k)
@@ -79,37 +80,37 @@ func (buf Buffers) AppendBuffer(bufList []string, params Params, fivetuple strin
 	_, ok := buf[fivetuple]
 	result.PacketOfAllBuffers++
 	if !ok {
-		new_timelist := []float64{0.0}
-		newbuf := Buffer{params.CurrentTime, new_timelist, 1}
+		// new_timelist := []float64{0.0}
+		newbuf := Buffer{params.CurrentTime,  1}
 		buf[fivetuple] = newbuf
 		bufList = append(bufList, fivetuple)
 	} else {
 		b := buf[fivetuple]
-		newbuf := Buffer{b.FirstTime, (append((b.TimeList), (params.CurrentTime-b.FirstTime))), b.Len + 1}
+		newbuf := Buffer{b.FirstTime,  b.Len + 1}
 		// *(b.TimeList) = append(*(b.TimeList), GetDuration(b.FirstTime, params.CurrentTime))
 		// b.Len++
 		buf[fivetuple] = newbuf
 		if len(bufList) > result.BufMax {
 			result.BufMax = len(bufList)
 		}
-		if b.Len >= params.EntrySize && params.EntrySize!=0{
-			result.AccessCount++
-			result.AccessCount++
-			result.AccessPers[len(result.AccessPers)-1]++
-			delete(buf,fivetuple)
-			bufList = remove(bufList,fivetuple)
-			if len(buf)!=len(bufList){
-				fmt.Println("error")
-			}
-		}
 	}
+	// if buf[fivetuple].Len >= params.EntrySize{// && params.EntrySize!=0{
+	// 	result.AccessCount++
+	// 	result.AccessPers[len(result.AccessPers)-1]++
+	// 	result.PacketOfAllBuffers -= buf[fivetuple].Len
+	// 	delete(buf,fivetuple)
+	// 	bufList = remove(bufList,fivetuple)
+	// 	if len(buf)!=len(bufList){
+	// 		fmt.Println("error")
+	// 	}
+	// }
 	return buf, bufList, result
 }
 
 //using in Global time base func
 
 func (buf Buffers) CheckGlobalTime(bufList []string, params Params, result ResultData) (Buffers, []string, ResultData) {
-	if params.CurrentTime > float64(result.CurrentTimeCount+1)*params.TimeWidth {
+	if params.CurrentTime > float64(result.CurrentTimeCount+1)*params.TimeWidth|| result.EndFlag == true  {
 		// fmt.Println(float64(result.CurrentTimeCount+1)*params.TimeWidth ,len(bufList))
 		// fmt.Println(duration,len(bufList))
 		result.AccessCount += len(bufList)
@@ -158,23 +159,25 @@ func (l List) Less(i, j int) bool {
 	}
 }
 
-func (l List) getListSum() int {
+func (l List) getListSum(params Params) int {
 	sum := 0
 	for _, v := range l {
 		sum += v.value
 	}
-	return sum
+	// fmt.Println(float64(sum)/(float64(params.EntrySize-1)/float64(params.EntrySize)))
+	// fmt.Println(params.EntrySize)
+	return int(math.Ceil(float64(sum)*(float64(params.EntrySize-1)/float64(params.EntrySize))))
 }
 
 //using stupid simulation
-func (buf Buffers) getStupidMap(bufList []string, bufSize int) List {
+func (buf Buffers) getStupidMap(bufList []string, params Params) List {
 	sortedMap := List{}
 	count := 0
 	for _, k := range bufList {
 		element := Entry{k, buf[k].Len}
 		sortedMap = append(sortedMap, element)
 		count++
-		if count == bufSize {
+		if count == params.BufSize {
 			break
 		}
 	}
@@ -187,33 +190,36 @@ func (buf Buffers) CheckGlobalTimeIdeal(bufList []string, params Params, result 
 	if params.BufSize > len(buf) {
 		params.BufSize = len(buf)
 	}
-	fmt.Println(params.BufSize)
 	sortedMap := List{}
-	if params.CurrentTime > float64(result.CurrentTimeCount+1)*params.TimeWidth {
+	if params.CurrentTime > float64(result.CurrentTimeCount+1)*params.TimeWidth || result.EndFlag == true {
+		// fmt.Println(params.BufSize)
 		if params.Stupid == false {
 			sortedMap = buf.getSortedMap(params.BufSize)
 		} else {
-			sortedMap = buf.getStupidMap(bufList, params.BufSize)
+			sortedMap = buf.getStupidMap(bufList, params)
 		}
 		// save the 10 biggest number of entry
-		// if params.BufSize<=10{
-		// 	fmt.Println(params.CurrentTime)
-		// }
 		// for i := 0; i < 10 && params.BufSize>=10; i++ {
 		// 	result.EntryNums[i] = append(result.EntryNums[i],sortedMap[i].value)
 		// }
-		bufferedPacket := sortedMap.getListSum()
-		accessCount := result.PacketOfAllBuffers - bufferedPacket + params.BufSize
+		reducing := sortedMap.getListSum(params)
+		if result.PacketOfAllBuffers< reducing{
+			fmt.Println(result.PacketOfAllBuffers, reducing)
+		}
+
+		accessCount := result.PacketOfAllBuffers - reducing
+		// fmt.Println(result.PacketOfAllBuffers == bufferedPacket , params.BufSize)
 		// fmt.Println(accessCount,len(bufList))
 		result.AccessCount += accessCount
 		result.AccessPers[len(result.AccessPers)-1] += accessCount
-		result.AccessCount += len(sortedMap)
+		// result.AccessCount += len(sortedMap)
 		bufList = []string{}
 		buf = Buffers{}
 		result.PacketOfAllBuffers = 0
 		result.CurrentTimeCount++
 	}
 	if params.CurrentTime > float64(len(result.AccessPers))*params.PerSec {
+		// fmt.Println(result.AccessPers[len(result.AccessPers)-1])
 		result.AccessPers = append(result.AccessPers, 0)
 	}
 	return buf, bufList, result

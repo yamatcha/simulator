@@ -26,13 +26,13 @@ const (
 	// csvpath string  = "../csv/http.csv"
 	// csvpath string = "../csv/201704122345.csv"
 	// csvpath string  = "./opCSV/2019070314002.csv"
-	csvpath string ="./opCSV/sinet.csv"
-	// csvpath string ="./opCSV/chicago20140320-1300.csv"
+	// csvpath string ="./opCSV/sinet.csv"
+	// csvpath string ="./opCSV/chicago.csv"
 	perSec  float64 = 1.0
 	// maxSec  int     = 900
 )
 
-func packetTimeBase(buf buffer.Buffers, bufList []string, result buffer.ResultData, params buffer.Params) (buffer.Buffers, []string, buffer.ResultData) {
+func packetTimeBase(csvpath string,buf buffer.Buffers, bufList []string, result buffer.ResultData, params buffer.Params) (buffer.Buffers, []string, buffer.ResultData) {
 	// open csv
 	file, err := os.Open(csvpath)
 	if err != nil {
@@ -62,7 +62,7 @@ func packetTimeBase(buf buffer.Buffers, bufList []string, result buffer.ResultDa
 	return buf, bufList, result
 }
 
-func globalTimeBase(buf buffer.Buffers, bufList []string, result buffer.ResultData, params buffer.Params, ideal bool) (buffer.Buffers, []string, buffer.ResultData) {
+func globalTimeBase(csvpath string,buf buffer.Buffers, bufList []string, result buffer.ResultData, params buffer.Params, ideal bool) (buffer.Buffers, []string, buffer.ResultData) {
 	// open csv
 	file, err := os.Open(csvpath)
 	if err != nil {
@@ -101,7 +101,7 @@ func globalTimeBase(buf buffer.Buffers, bufList []string, result buffer.ResultDa
 	return buf, bufList, result
 }
 
-func preEval(buf buffer.Buffers, bufList []string, result buffer.ResultData, params buffer.Params) (buffer.Buffers, []string, buffer.ResultData){
+func preEval(csvpath string,buf buffer.Buffers, bufList []string, result buffer.ResultData, params buffer.Params) (buffer.Buffers, []string, buffer.ResultData){
 		// open csv
 	file, err := os.Open(csvpath)
 	if err != nil {
@@ -128,7 +128,7 @@ func preEval(buf buffer.Buffers, bufList []string, result buffer.ResultData, par
 	return buf, bufList, result
 }
 
-func getRtt(buf buffer.Buffers, params buffer.Params) float64{
+func getRtt(csvpath string,buf buffer.Buffers, params buffer.Params) float64{
 		// open csv
 	file, err := os.Open(csvpath)
 	if err != nil {
@@ -153,8 +153,8 @@ func getRtt(buf buffer.Buffers, params buffer.Params) float64{
 		params.CurrentTime, _ = strconv.ParseFloat(line[1],64)
 		_,ok:=buf[fiveTuple]
 		if !ok{
-			new_timelist := []float64{0.0}
-			newbuf := buffer.Buffer{params.CurrentTime, new_timelist, 1}
+			// new_timelist := []float64{0.0}
+			newbuf := buffer.Buffer{params.CurrentTime, 1}
 			buf[fiveTuple] = newbuf
 			list := strings.Split(fiveTuple," ")
 			syn := strings.Join(append(append(list[2:4],list[0:2]...), list[4])," ")
@@ -162,8 +162,7 @@ func getRtt(buf buffer.Buffers, params buffer.Params) float64{
 			// fmt.Println(buf)
 			if ok{
 				rttCount++
-				// fmt.Println(params.CurrentTime-b.FirstTime,params.CurrentTime,b.FirstTime)
-				rttSum+= params.CurrentTime-b.FirstTime
+				rttSum+= (params.CurrentTime-b.FirstTime)
 			}
 		}
 	}
@@ -178,13 +177,19 @@ func printAccessPers(result buffer.ResultData) {
 	}
 }
 
-func printAcccessPersTotal(result buffer.ResultData) {
+func printAcccessPersTotal(result buffer.ResultData, mode int) {
 	sum := 0
 	for _, v := range result.AccessPers {
+		// fmt.Println(v)
 		sum += v
 	}
-	fmt.Println(sum)
+	if mode==0 || mode==1{
+		fmt.Println(float64(sum)/900.0)
+	}else{
+		fmt.Println(float64(sum)/90.0)
+	}
 }
+
 func printEntryNums(result buffer.ResultData,timeWidth float64) {
 	for i, _ := range result.EntryNums[0] {
 		fmt.Print(strconv.FormatFloat(float64(i)*timeWidth,'f',2,64) + " ")
@@ -206,31 +211,36 @@ func main() {
 	bufList := []string{}
 	result := buffer.ResultData{0, 0, 0, 0, 0, 0, []int{0}, make([][]int,10), false}
 	params := buffer.Params{0.0, 0, 0, 0, 0, false}
+	csvpaths := []string{"./opCSV/wide.csv","./opCSV/chicago.csv","./opCSV/sinet.csv"}
 
 	// read time width and buffer size
 	flag.Parse()
-	mode, _ := strconv.Atoi(flag.Arg(0))
-	params.TimeWidth, _ = strconv.ParseFloat(flag.Arg(1), 64)
-	params.BufSize, _ = strconv.Atoi(flag.Arg(2))
-	params.EntrySize, _ = strconv.Atoi(flag.Arg(3))
+	csvmode, _ := strconv.Atoi(flag.Arg(0))
+	mode, _ := strconv.Atoi(flag.Arg(1))
+	params.TimeWidth, _ = strconv.ParseFloat(flag.Arg(2), 64)
+	params.BufSize, _ = strconv.Atoi(flag.Arg(3))
+	params.EntrySize, _ = strconv.Atoi(flag.Arg(4))
 
 	params.PerSec = perSec
+	csvpath := csvpaths[csvmode]
+	// fmt.Println(csvpath)
 
 	//select simulator
 	if mode == 0 {
 		// buf, bufList, result = packetTimeBase(buf, bufList, result, params)
 	} else if mode == 1 {
-		buf, bufList, result = globalTimeBase(buf, bufList, result, params, false)
+		buf, bufList, result = globalTimeBase(csvpath,buf, bufList, result, params, false)
 	} else if mode == 2 {
 		//
-		buf, bufList, result = globalTimeBase(buf, bufList, result, params, true)
+		buf, bufList, result = globalTimeBase(csvpath,buf, bufList, result, params, true)
 	} else if mode == 3 {
 		params.Stupid = true
-		buf, bufList, result = globalTimeBase(buf, bufList, result, params, true)
+		buf, bufList, result = globalTimeBase(csvpath,buf, bufList, result, params, true)
 	} else if mode == 4{
-		buf, bufList, result = preEval(buf,bufList,result,params)
+		buf, bufList, result = preEval(csvpath,buf,bufList,result,params)
+		printPreEval(buf)
 	} else if mode == 5{
-		fmt.Println(getRtt(buf,params))
+		fmt.Println(getRtt(csvpath,buf,params))
 	}
 
 	// print result
@@ -239,9 +249,9 @@ func main() {
 	// fmt.Println(result.EntryNum)
 
 	// printAccessPers(result)
-	// printAcccessPersTotal(result)
+	// printAcccessPersTotal(result,csvmode)
 	// printEntryNums(result, params.TimeWidth)
-	// printPreEval(buf)
+	printPreEval(buf)
 
 	// fmt.Println(result.MaxPacketNum, result.AccessCount, float64(result.AccessCount)/float64(result.PacketNumAll),result.PacketNumAll)
 
