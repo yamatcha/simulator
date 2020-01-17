@@ -10,7 +10,7 @@ import (
 	// "log"
 	// "reflect"
 	"sort"
-	"math"
+	// "math"
 	// "time"
 )
 
@@ -162,11 +162,14 @@ func (l List) Less(i, j int) bool {
 func (l List) getListSum(params Params) int {
 	sum := 0
 	for _, v := range l {
-		sum += v.value
+		sum += int(float64(v.value)*(float64(params.EntrySize-1)/float64(params.EntrySize)))
+		// sum += v.value
 	}
-	// fmt.Println(float64(sum)/(float64(params.EntrySize-1)/float64(params.EntrySize)))
+	// fmt.Println((float64(params.EntrySize-1)/float64(params.EntrySize)))
+	// fmt.Println(sum)
 	// fmt.Println(params.EntrySize)
-	return int(math.Ceil(float64(sum)*(float64(params.EntrySize-1)/float64(params.EntrySize))))
+	// result := int(float64(sum)*(float64(params.EntrySize-1)/float64(params.EntrySize)))
+	return sum
 }
 
 //using stupid simulation
@@ -203,6 +206,7 @@ func (buf Buffers) CheckGlobalTimeIdeal(bufList []string, params Params, result 
 		// 	result.EntryNums[i] = append(result.EntryNums[i],sortedMap[i].value)
 		// }
 		reducing := sortedMap.getListSum(params)
+		// fmt.Println(reducing)
 		if result.PacketOfAllBuffers< reducing{
 			fmt.Println(result.PacketOfAllBuffers, reducing)
 		}

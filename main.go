@@ -168,6 +168,67 @@ func getRtt(csvpath string,buf buffer.Buffers, params buffer.Params) float64{
 	}
 	return rttSum/float64(rttCount)
 }
+func getWindow(csvpath string,buf buffer.Buffers, params buffer.Params) float64{
+	// open csv
+	file, err := os.Open(csvpath)
+	if err != nil {
+		panic(err)
+	}
+	defer file.Close()
+
+	rttSum := 0
+	rttCount := 0
+
+	type flowWindow struct {
+		sum int
+		count int
+	}
+
+	flowWindows := map[string]flowWindow{}
+
+	reader := csv.NewReader(file)
+	var line []string
+	i := 0
+	for i = 0; ; i++ {
+		line, err = reader.Read()
+		if err == io.EOF {
+			break
+		} else if err != nil {
+			panic(err)
+		}
+		fiveTuple := line[0]
+		params.CurrentTime, _ = strconv.ParseFloat(line[1],64)
+		b,ok:=buf[fiveTuple]
+		if !ok{
+			// new_timelist := []float64{0.0}
+			newbuf := buffer.Buffer{params.CurrentTime, 1}
+			buf[fiveTuple] = newbuf
+			list := strings.Split(fiveTuple," ")
+			syn := strings.Join(append(append(list[2:4],list[0:2]...), list[4])," ")
+			_, ok := buf[syn]
+			// fmt.Println(buf)
+			if ok{
+				// rttCount++
+				// rttSum+= buf[syn].Len
+				// fmt.Println(buf[syn].Len)
+				f,ok := flowWindows[syn]
+				if ok{
+					flowWindows[syn] = flowWindow{f.sum+buf[syn].Len,f.count+1}
+				}else{
+					flowWindows[syn] = flowWindow{buf[syn].Len,1}
+				}
+				delete(buf,syn)
+			}
+		}else{
+			newbuf := buffer.Buffer{b.FirstTime,b.Len+1}
+			buf[fiveTuple] = newbuf
+		}
+	}
+	for _,window := range flowWindows{
+		fmt.Println(float64(window.sum)/float64(window.count))
+	}
+	return float64(rttSum)/float64(rttCount)
+}
 
 
 // function for display result of list
@@ -177,7 +238,7 @@ func printAccessPers(result buffer.ResultData) {
 	}
 }
 
-func printAcccessPersTotal(result buffer.ResultData, mode int) {
+func printAcccessPersAvg(result buffer.ResultData, mode int) {
 	sum := 0
 	for _, v := range result.AccessPers {
 		// fmt.Println(v)
@@ -241,6 +302,9 @@ func main() {
 		printPreEval(buf)
 	} else if mode == 5{
 		fmt.Println(getRtt(csvpath,buf,params))
+	}else if mode == 6{
+		// fmt.Println("result:",getWindow(csvpath,buf,params))
+		getWindow(csvpath,buf,params)
 	}
 
 	// print result
@@ -249,9 +313,9 @@ func main() {
 	// fmt.Println(result.EntryNum)
 
 	// printAccessPers(result)
-	// printAcccessPersTotal(result,csvmode)
+	printAcccessPersAvg(result,csvmode)
 	// printEntryNums(result, params.TimeWidth)
-	printPreEval(buf)
+	// printPreEval(buf)
 
 	// fmt.Println(result.MaxPacketNum, result.AccessCount, float64(result.AccessCount)/float64(result.PacketNumAll),result.PacketNumAll)
 
