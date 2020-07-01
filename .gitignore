@@ -3,5 +3,8 @@
 *.pcap
 *.csv
 *.py
+*.txt
+*.gp
+*.eps
 pcap/*
 /opCSV/chicago/*
