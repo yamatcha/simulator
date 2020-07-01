@@ -2,14 +2,10 @@ package Info
 
 import (
 	// "fmt"
+	"time"
+
 	"github.com/google/gopacket"
 	"github.com/google/gopacket/layers"
-	// "github.com/google/gopacket/pcap"
-	// "net"
-	// "io"
-	// "log"
-	// "reflect"
-	"time"
 )
 
 func GetFiveTuple(packet gopacket.Packet) string {
@@ -52,5 +48,3 @@ func GetTime(packet gopacket.Packet) time.Time {
 func GetDuration(first time.Time, now time.Time) float64 {
 	return now.Sub(first).Seconds()
 }
-
-

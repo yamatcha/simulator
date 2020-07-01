@@ -1,25 +1,19 @@
 package Info
 
-
-
 import (
-	// "github.com/yamatcha/simulator/opCSV/Info"
 	"fmt"
+
 	"github.com/google/gopacket"
-	// "github.com/google/gopacket/layers"
-	"github.com/google/gopacket/pcap"
-	// "net"
+
 	"io"
 	"log"
 	"time"
-	// "sort"
-	// "flag"
-	// "strconv"
-	// "reflect"
+
+	"github.com/google/gopacket/pcap"
+
 	"encoding/csv"
 	"os"
 	"strconv"
-	// "strings"
 )
 
 var (
@@ -42,7 +36,7 @@ func failOnError(err error) {
 }
 
 func PcapToCSV() {
-	pcapFile := []string{"./chicagoA/20140320-130000","./chicagoA/20140320-130100","./chicagoA/20140320-130200","./chicagoA/20140320-130300","./chicagoA/20140320-130400","./chicagoA/20140320-130500","./chicagoA/20140320-130600","./chicagoA/20140320-130700","./chicagoA/20140320-130800","./chicagoA/20140320-130900","./chicagoA/20140320-131000","./chicagoA/20140320-131100","./chicagoA/20140320-131200","./chicagoA/20140320-131300","./chicagoA/20140320-131400"}
+	pcapFile := []string{"./chicagoA/20140320-130000", "./chicagoA/20140320-130100", "./chicagoA/20140320-130200", "./chicagoA/20140320-130300", "./chicagoA/20140320-130400", "./chicagoA/20140320-130500", "./chicagoA/20140320-130600", "./chicagoA/20140320-130700", "./chicagoA/20140320-130800", "./chicagoA/20140320-130900", "./chicagoA/20140320-131000", "./chicagoA/20140320-131100", "./chicagoA/20140320-131200", "./chicagoA/20140320-131300", "./chicagoA/20140320-131400"}
 	// open pcap file and initialize csv
 
 	// name := strings.Split(strings.Split(pcapFile, "/")[3], ".")[0]
@@ -57,7 +51,7 @@ func PcapToCSV() {
 	writer := csv.NewWriter(file)
 	var startTime time.Time
 	for j := 0; j < len(pcapFile); j++ {
-		handle, err = pcap.OpenOffline(pcapFile[j]+".pcap")
+		handle, err = pcap.OpenOffline(pcapFile[j] + ".pcap")
 		var currentTime time.Time
 		if err != nil {
 			log.Fatal(err)
@@ -73,7 +67,7 @@ func PcapToCSV() {
 				log.Println("Error:", err)
 				continue
 			}
-			if j == 0 && i==0 {
+			if j == 0 && i == 0 {
 				fmt.Println("hoge")
 				currentTime = GetTime(packet)
 				startTime = currentTime
@@ -83,9 +77,9 @@ func PcapToCSV() {
 				currentTime = GetTime(packet)
 				if i < 5 {
 
-					fmt.Println(startTime, currentTime, strconv.FormatFloat(GetDuration(startTime,currentTime), 'f', 6, 64))
+					fmt.Println(startTime, currentTime, strconv.FormatFloat(GetDuration(startTime, currentTime), 'f', 6, 64))
 				}
-				timeStamp := strconv.FormatFloat(GetDuration(startTime,currentTime), 'f', 6, 64)
+				timeStamp := strconv.FormatFloat(GetDuration(startTime, currentTime), 'f', 6, 64)
 				writer.Write([]string{fiveTuple, timeStamp})
 				i++
 			}
