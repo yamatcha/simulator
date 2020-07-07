@@ -1,19 +1,14 @@
 package main
 
 import (
-	"fmt"
-	// "github.com/google/gopacket"
-	"os"
-	// "github.com/google/gopacket/layers"
-	"github.com/yamatcha/simulator/buffer"
-	// "net"
-	"io"
-	// "log"
-	// "time"
-	// "sort"
 	"flag"
+	"fmt"
+	"io"
+	"os"
 	"strconv"
-	// "reflect"
+
+	"github.com/yamatcha/simulator/buffer"
+
 	"encoding/csv"
 	"strings"
 )
@@ -28,11 +23,11 @@ const (
 	// csvpath string  = "./opCSV/2019070314002.csv"
 	// csvpath string ="./opCSV/sinet.csv"
 	// csvpath string ="./opCSV/chicago.csv"
-	perSec  float64 = 1.0
+	perSec float64 = 1.0
 	// maxSec  int     = 900
 )
 
-func packetTimeBase(csvpath string,buf buffer.Buffers, bufList []string, result buffer.ResultData, params buffer.Params) (buffer.Buffers, []string, buffer.ResultData) {
+func packetTimeBase(csvpath string, buf buffer.Buffers, bufList []string, result buffer.ResultData, params buffer.Params) (buffer.Buffers, []string, buffer.ResultData) {
 	// open csv
 	file, err := os.Open(csvpath)
 	if err != nil {
@@ -53,7 +48,7 @@ func packetTimeBase(csvpath string,buf buffer.Buffers, bufList []string, result 
 			panic(err)
 		}
 		fiveTuple := line[0]
-		params.CurrentTime, _ = strconv.ParseFloat(line[1],64)
+		params.CurrentTime, _ = strconv.ParseFloat(line[1], 64)
 		buf, bufList, result = buf.CheckBufferTime(bufList, params, result)
 		buf, bufList, result = buf.AppendBuffer(bufList, params, fiveTuple, result)
 	}
@@ -62,7 +57,7 @@ func packetTimeBase(csvpath string,buf buffer.Buffers, bufList []string, result 
 	return buf, bufList, result
 }
 
-func globalTimeBase(csvpath string,buf buffer.Buffers, bufList []string, result buffer.ResultData, params buffer.Params, ideal bool) (buffer.Buffers, []string, buffer.ResultData) {
+func globalTimeBase(csvpath string, buf buffer.Buffers, bufList []string, result buffer.ResultData, params buffer.Params, ideal bool) (buffer.Buffers, []string, buffer.ResultData) {
 	// open csv
 	file, err := os.Open(csvpath)
 	if err != nil {
@@ -83,7 +78,7 @@ func globalTimeBase(csvpath string,buf buffer.Buffers, bufList []string, result 
 			panic(err)
 		}
 		fiveTuple := line[0]
-		params.CurrentTime, _ = strconv.ParseFloat(line[1],64)
+		params.CurrentTime, _ = strconv.ParseFloat(line[1], 64)
 		if ideal == false {
 			buf, bufList, result = buf.CheckGlobalTime(bufList, params, result)
 		} else {
@@ -101,8 +96,8 @@ func globalTimeBase(csvpath string,buf buffer.Buffers, bufList []string, result 
 	return buf, bufList, result
 }
 
-func preEval(csvpath string,buf buffer.Buffers, bufList []string, result buffer.ResultData, params buffer.Params) (buffer.Buffers, []string, buffer.ResultData){
-		// open csv
+func preEval(csvpath string, buf buffer.Buffers, bufList []string, result buffer.ResultData, params buffer.Params) (buffer.Buffers, []string, buffer.ResultData) {
+	// open csv
 	file, err := os.Open(csvpath)
 	if err != nil {
 		panic(err)
@@ -120,7 +115,7 @@ func preEval(csvpath string,buf buffer.Buffers, bufList []string, result buffer.
 			panic(err)
 		}
 		fiveTuple := line[0]
-		params.CurrentTime, _ = strconv.ParseFloat(line[1],64)
+		params.CurrentTime, _ = strconv.ParseFloat(line[1], 64)
 		buf, bufList, result = buf.AppendBuffer(bufList, params, fiveTuple, result)
 	}
 	result.EndFlag = true
@@ -128,8 +123,8 @@ func preEval(csvpath string,buf buffer.Buffers, bufList []string, result buffer.
 	return buf, bufList, result
 }
 
-func getRtt(csvpath string,buf buffer.Buffers, params buffer.Params) float64{
-		// open csv
+func getRtt(csvpath string, buf buffer.Buffers, params buffer.Params) float64 {
+	// open csv
 	file, err := os.Open(csvpath)
 	if err != nil {
 		panic(err)
@@ -150,25 +145,25 @@ func getRtt(csvpath string,buf buffer.Buffers, params buffer.Params) float64{
 			panic(err)
 		}
 		fiveTuple := line[0]
-		params.CurrentTime, _ = strconv.ParseFloat(line[1],64)
-		_,ok:=buf[fiveTuple]
-		if !ok{
+		params.CurrentTime, _ = strconv.ParseFloat(line[1], 64)
+		_, ok := buf[fiveTuple]
+		if !ok {
 			// new_timelist := []float64{0.0}
 			newbuf := buffer.Buffer{params.CurrentTime, 1}
 			buf[fiveTuple] = newbuf
-			list := strings.Split(fiveTuple," ")
-			syn := strings.Join(append(append(list[2:4],list[0:2]...), list[4])," ")
+			list := strings.Split(fiveTuple, " ")
+			syn := strings.Join(append(append(list[2:4], list[0:2]...), list[4]), " ")
 			b, ok := buf[syn]
 			// fmt.Println(buf)
-			if ok{
+			if ok {
 				rttCount++
-				rttSum+= (params.CurrentTime-b.FirstTime)
+				rttSum += (params.CurrentTime - b.FirstTime)
 			}
 		}
 	}
-	return rttSum/float64(rttCount)
+	return rttSum / float64(rttCount)
 }
-func getWindow(csvpath string,buf buffer.Buffers, params buffer.Params) float64{
+func getWindow(csvpath string, buf buffer.Buffers, params buffer.Params) float64 {
 	// open csv
 	file, err := os.Open(csvpath)
 	if err != nil {
@@ -180,7 +175,7 @@ func getWindow(csvpath string,buf buffer.Buffers, params buffer.Params) float64{
 	rttCount := 0
 
 	type flowWindow struct {
-		sum int
+		sum   int
 		count int
 	}
 
@@ -197,39 +192,38 @@ func getWindow(csvpath string,buf buffer.Buffers, params buffer.Params) float64{
 			panic(err)
 		}
 		fiveTuple := line[0]
-		params.CurrentTime, _ = strconv.ParseFloat(line[1],64)
-		b,ok:=buf[fiveTuple]
-		if !ok{
+		params.CurrentTime, _ = strconv.ParseFloat(line[1], 64)
+		b, ok := buf[fiveTuple]
+		if !ok {
 			// new_timelist := []float64{0.0}
 			newbuf := buffer.Buffer{params.CurrentTime, 1}
 			buf[fiveTuple] = newbuf
-			list := strings.Split(fiveTuple," ")
-			syn := strings.Join(append(append(list[2:4],list[0:2]...), list[4])," ")
+			list := strings.Split(fiveTuple, " ")
+			syn := strings.Join(append(append(list[2:4], list[0:2]...), list[4]), " ")
 			_, ok := buf[syn]
 			// fmt.Println(buf)
-			if ok{
+			if ok {
 				// rttCount++
 				// rttSum+= buf[syn].Len
 				// fmt.Println(buf[syn].Len)
-				f,ok := flowWindows[syn]
-				if ok{
-					flowWindows[syn] = flowWindow{f.sum+buf[syn].Len,f.count+1}
-				}else{
-					flowWindows[syn] = flowWindow{buf[syn].Len,1}
+				f, ok := flowWindows[syn]
+				if ok {
+					flowWindows[syn] = flowWindow{f.sum + buf[syn].Len, f.count + 1}
+				} else {
+					flowWindows[syn] = flowWindow{buf[syn].Len, 1}
 				}
-				delete(buf,syn)
+				delete(buf, syn)
 			}
-		}else{
-			newbuf := buffer.Buffer{b.FirstTime,b.Len+1}
+		} else {
+			newbuf := buffer.Buffer{b.FirstTime, b.Len + 1}
 			buf[fiveTuple] = newbuf
 		}
 	}
-	for _,window := range flowWindows{
-		fmt.Println(float64(window.sum)/float64(window.count))
+	for _, window := range flowWindows {
+		fmt.Println(float64(window.sum) / float64(window.count))
 	}
-	return float64(rttSum)/float64(rttCount)
+	return float64(rttSum) / float64(rttCount)
 }
-
 
 // function for display result of list
 func printAccessPers(result buffer.ResultData) {
@@ -244,25 +238,25 @@ func printAcccessPersAvg(result buffer.ResultData, mode int) {
 		// fmt.Println(v)
 		sum += v
 	}
-	if mode==0 || mode==1{
-		fmt.Println(float64(sum)/900.0)
-	}else{
-		fmt.Println(float64(sum)/90.0)
+	if mode == 0 || mode == 1 {
+		fmt.Println(float64(sum) / 900.0)
+	} else {
+		fmt.Println(float64(sum) / 90.0)
 	}
 }
 
-func printEntryNums(result buffer.ResultData,timeWidth float64) {
+func printEntryNums(result buffer.ResultData, timeWidth float64) {
 	for i, _ := range result.EntryNums[0] {
-		fmt.Print(strconv.FormatFloat(float64(i)*timeWidth,'f',2,64) + " ")
-		for j:=0;j<10;j++ {
-			fmt.Print(strconv.Itoa(result.EntryNums[j][i])+ " ")
+		fmt.Print(strconv.FormatFloat(float64(i)*timeWidth, 'f', 2, 64) + " ")
+		for j := 0; j < 10; j++ {
+			fmt.Print(strconv.Itoa(result.EntryNums[j][i]) + " ")
 		}
 		fmt.Println()
 	}
 }
 
-func printPreEval(buf buffer.Buffers){
-	for _, b := range buf{
+func printPreEval(buf buffer.Buffers) {
+	for _, b := range buf {
 		fmt.Println(b.Len)
 	}
 }
@@ -270,9 +264,9 @@ func printPreEval(buf buffer.Buffers){
 func main() {
 	buf := buffer.Buffers{}
 	bufList := []string{}
-	result := buffer.ResultData{0, 0, 0, 0, 0, 0, []int{0}, make([][]int,10), false}
+	result := buffer.ResultData{0, 0, 0, 0, 0, 0, []int{0}, make([][]int, 10), false}
 	params := buffer.Params{0.0, 0, 0, 0, 0, false}
-	csvpaths := []string{"./opCSV/wide.csv","./opCSV/chicago.csv","./opCSV/sinet.csv"}
+	csvpaths := []string{"./opCSV/wide.csv", "./opCSV/chicago.csv", "./opCSV/sinet.csv"}
 
 	// read time width and buffer size
 	flag.Parse()
@@ -284,27 +278,26 @@ func main() {
 
 	params.PerSec = perSec
 	csvpath := csvpaths[csvmode]
-	// fmt.Println(csvpath)
 
 	//select simulator
 	if mode == 0 {
 		// buf, bufList, result = packetTimeBase(buf, bufList, result, params)
 	} else if mode == 1 {
-		buf, bufList, result = globalTimeBase(csvpath,buf, bufList, result, params, false)
+		buf, bufList, result = globalTimeBase(csvpath, buf, bufList, result, params, false)
 	} else if mode == 2 {
 		//
-		buf, bufList, result = globalTimeBase(csvpath,buf, bufList, result, params, true)
+		buf, bufList, result = globalTimeBase(csvpath, buf, bufList, result, params, true)
 	} else if mode == 3 {
 		params.Stupid = true
-		buf, bufList, result = globalTimeBase(csvpath,buf, bufList, result, params, true)
-	} else if mode == 4{
-		buf, bufList, result = preEval(csvpath,buf,bufList,result,params)
+		buf, bufList, result = globalTimeBase(csvpath, buf, bufList, result, params, true)
+	} else if mode == 4 {
+		buf, bufList, result = preEval(csvpath, buf, bufList, result, params)
 		printPreEval(buf)
-	} else if mode == 5{
-		fmt.Println(getRtt(csvpath,buf,params))
-	}else if mode == 6{
+	} else if mode == 5 {
+		fmt.Println(getRtt(csvpath, buf, params))
+	} else if mode == 6 {
 		// fmt.Println("result:",getWindow(csvpath,buf,params))
-		getWindow(csvpath,buf,params)
+		getWindow(csvpath, buf, params)
 	}
 
 	// print result
@@ -313,7 +306,7 @@ func main() {
 	// fmt.Println(result.EntryNum)
 
 	// printAccessPers(result)
-	printAcccessPersAvg(result,csvmode)
+	printAcccessPersAvg(result, csvmode)
 	// printEntryNums(result, params.TimeWidth)
 	// printPreEval(buf)
 
