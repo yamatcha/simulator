@@ -23,12 +23,8 @@ const (
 )
 
 func globalTimeBase(csvReader *csv.Reader, buf buffer.Buffers, bufList []string, result buffer.ResultData, params buffer.Params, ideal bool) (buffer.Buffers, []string, buffer.ResultData) {
-	var line []string
-
-	//reading csv and do
-	i := 0
-	for i = 0; ; i++ {
-		line, err = csvReader.Read()
+	for ; ; result.PacketNumAll++ {
+		line, err := csvReader.Read()
 		if err == io.EOF {
 			break
 		} else if err != nil {
@@ -37,26 +33,24 @@ func globalTimeBase(csvReader *csv.Reader, buf buffer.Buffers, bufList []string,
 		fiveTuple := line[0]
 		params.CurrentTime, _ = strconv.ParseFloat(line[1], 64)
 		if ideal == false {
-			buf, bufList, result = buf.CheckGlobalTime(bufList, params, result)
+			buf, bufList, result = buf.CheckGlobalTimeWithUnlimitedBuffers(bufList, params, result)
 		} else {
-			buf, bufList, result = buf.CheckGlobalTimeIdeal(bufList, params, result)
+			buf, bufList, result = buf.CheckGlobalTime(bufList, params, result)
 		}
-		buf, bufList, result = buf.AppendBuffer(bufList, params, fiveTuple, result)
+		buf, bufList, result = buf.Append(bufList, params, fiveTuple, result)
 	}
 	result.EndFlag = true
-	result.PacketNumAll = i
 	if ideal == false {
-		buf, bufList, result = buf.CheckGlobalTime(bufList, params, result)
+		buf, bufList, result = buf.CheckGlobalTimeWithUnlimitedBuffers(bufList, params, result)
 	} else {
-		buf, bufList, result = buf.CheckGlobalTimeIdeal(bufList, params, result)
+		buf, bufList, result = buf.CheckGlobalTime(bufList, params, result)
 	}
 	return buf, bufList, result
 }
 
 func preEval(csvReader *csv.Reader, buf buffer.Buffers, bufList []string, result buffer.ResultData, params buffer.Params) (buffer.Buffers, []string, buffer.ResultData) {
-	var line []string
 	for ; ; result.PacketNumAll++ {
-		line, err = csvReader.Read()
+		line, err := csvReader.Read()
 		if err == io.EOF {
 			break
 		} else if err != nil {
@@ -64,7 +58,7 @@ func preEval(csvReader *csv.Reader, buf buffer.Buffers, bufList []string, result
 		}
 		fiveTuple := line[0]
 		params.CurrentTime, _ = strconv.ParseFloat(line[1], 64)
-		buf, bufList, result = buf.AppendBuffer(bufList, params, fiveTuple, result)
+		buf, bufList, result = buf.Append(bufList, params, fiveTuple, result)
 	}
 	result.EndFlag = true
 	return buf, bufList, result
@@ -74,10 +68,8 @@ func getRtt(csvReader *csv.Reader, buf buffer.Buffers, params buffer.Params) flo
 	rttSum := 0.0
 	rttCount := 0
 
-	var line []string
-	i := 0
-	for i = 0; ; i++ {
-		line, err = csvReader.Read()
+	for {
+		line, err := csvReader.Read()
 		if err == io.EOF {
 			break
 		} else if err != nil {
@@ -114,10 +106,8 @@ func getWindow(csvReader *csv.Reader, buf buffer.Buffers, params buffer.Params) 
 
 	flowWindows := map[string]flowWindow{}
 
-	var line []string
-	i := 0
-	for i = 0; ; i++ {
-		line, err = csvReader.Read()
+	for {
+		line, err := csvReader.Read()
 		if err == io.EOF {
 			break
 		} else if err != nil {
@@ -127,7 +117,6 @@ func getWindow(csvReader *csv.Reader, buf buffer.Buffers, params buffer.Params) 
 		params.CurrentTime, _ = strconv.ParseFloat(line[1], 64)
 		b, ok := buf[fiveTuple]
 		if !ok {
-			// new_timelist := []float64{0.0}
 			newbuf := buffer.Buffer{params.CurrentTime, 1}
 			buf[fiveTuple] = newbuf
 			list := strings.Split(fiveTuple, " ")
@@ -137,7 +126,6 @@ func getWindow(csvReader *csv.Reader, buf buffer.Buffers, params buffer.Params) 
 			if ok {
 				// rttCount++
 				// rttSum+= buf[syn].Len
-				// fmt.Println(buf[syn].Len)
 				f, ok := flowWindows[syn]
 				if ok {
 					flowWindows[syn] = flowWindow{f.sum + buf[syn].Len, f.count + 1}
@@ -158,22 +146,24 @@ func getWindow(csvReader *csv.Reader, buf buffer.Buffers, params buffer.Params) 
 }
 
 func main() {
+
+	var (
+		csvpath   = *flag.String("path", "", "csv path")
+		mode      = *flag.Int("mode", 0, "simulator mode")
+		timeWidth = *flag.Float64("timeWidth", 0, "time width")
+		bufSize   = *flag.Int("bufsize", 0, "the number of buffers")
+		entrySize = *flag.Int("entrysize", 0, "the number of entries per buffer")
+	)
+
 	buf := buffer.Buffers{}
 	bufList := []string{}
-	result := buffer.ResultData{0, 0, 0, 0, 0, 0, []int{0}, false}
-	params := buffer.Params{}
-	csvpaths := []string{"./opCSV/wide.csv", "./opCSV/chicago.csv", "./opCSV/sinet.csv"}
+	result := buffer.ResultData{AccessPers: []int{0}}
+	params := buffer.Params{TimeWidth: timeWidth, BufSize: bufSize, EntrySize: entrySize}
 
 	// read time width and buffer size
 	flag.Parse()
-	csvmode, _ := strconv.Atoi(flag.Arg(0))
-	mode, _ := strconv.Atoi(flag.Arg(1))
-	params.TimeWidth, _ = strconv.ParseFloat(flag.Arg(2), 64)
-	params.BufSize, _ = strconv.Atoi(flag.Arg(3))
-	params.EntrySize, _ = strconv.Atoi(flag.Arg(4))
 
 	params.PerSec = perSec
-	csvpath := csvpaths[csvmode]
 
 	// open csv
 	file, err := os.Open(csvpath)
@@ -185,19 +175,18 @@ func main() {
 
 	//select simulator
 	switch mode {
-	case 1:
+	case 0:
 		buf, bufList, result = globalTimeBase(reader, buf, bufList, result, params, false)
-	case 2:
+	case 1:
 		buf, bufList, result = globalTimeBase(reader, buf, bufList, result, params, true)
-	case 3:
+	case 2:
 		params.Stupid = true
 		buf, bufList, result = globalTimeBase(reader, buf, bufList, result, params, true)
-	case 4:
+	case 3:
 		buf, bufList, result = preEval(reader, buf, bufList, result, params)
-	case 5:
+	case 4:
 		fmt.Println(getRtt(reader, buf, params))
-	case 6:
-		// fmt.Println("result:",getWindow(reader,buf,params))
+	case 5:
 		getWindow(reader, buf, params)
 	}
 
