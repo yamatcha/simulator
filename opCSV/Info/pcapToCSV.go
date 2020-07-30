@@ -68,7 +68,6 @@ func PcapToCSV() {
 				continue
 			}
 			if j == 0 && i == 0 {
-				fmt.Println("hoge")
 				currentTime = GetTime(packet)
 				startTime = currentTime
 			}
