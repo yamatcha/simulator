@@ -3,6 +3,7 @@ package buffer
 import (
 	"fmt"
 	"sort"
+	"strings"
 )
 
 type Buffer struct {
@@ -48,29 +49,53 @@ func (buf Buffers) Append(bufList []string, params Params, fivetuple string, res
 	return buf, bufList, result
 }
 
+func batchProcessing(buf Buffers, bufList []string, params Params, result ResultData) (Buffers, []string, Params, ResultData) {
+	sortedMap := List{}
+	if params.Stupid == false {
+		sortedMap = buf.getSortedMap(params.BufSize)
+	} else {
+		sortedMap = buf.getStupidMap(bufList, params)
+	}
+	reducing := sortedMap.getListSum(params)
+	if result.PacketOfAllBuffers < reducing {
+		fmt.Println(result.PacketOfAllBuffers, reducing)
+	}
+
+	accessCount := result.PacketOfAllBuffers - reducing
+	result.AccessCount += accessCount
+	result.AccessPers[len(result.AccessPers)-1] += accessCount
+	bufList = []string{}
+	buf = Buffers{}
+	result.PacketOfAllBuffers = 0
+	result.CurrentTimeCount++
+
+	return buf, bufList, params, result
+}
+
+func (buf Buffers) CheckAck(fiveTuple string, bufList []string, params Params, result ResultData) {
+	list := strings.Split(fiveTuple, " ")
+	ack := strings.Join(append(append(list[2:4], list[0:2]...), list[4]), " ")
+	_, ok := buf[ack]
+	if ok {
+		accessCount := int(float64(buf[ack].Len) / float64(params.EntrySize))
+		result.AccessCount += accessCount
+		result.AccessPers[len(result.AccessPers)-1] += accessCount
+		result.PacketOfAllBuffers -= buf[ack].Len
+		bufList = deleteList(bufList, ack)
+		delete(buf, ack)
+	}
+}
+
+func (buf Buffers) EndProcessing(bufList []string, params Params, result ResultData) {
+	buf, bufList, params, result = batchProcessing(buf, bufList, params, result)
+}
+
 func (buf Buffers) CheckGlobalTime(bufList []string, params Params, result ResultData) (Buffers, []string, ResultData) {
 	if params.BufSize > len(buf) {
 		params.BufSize = len(buf)
 	}
-	sortedMap := List{}
 	if params.CurrentTime > float64(result.CurrentTimeCount+1)*params.TimeWidth || result.EndFlag == true {
-		if params.Stupid == false {
-			sortedMap = buf.getSortedMap(params.BufSize)
-		} else {
-			sortedMap = buf.getStupidMap(bufList, params)
-		}
-		reducing := sortedMap.getListSum(params)
-		if result.PacketOfAllBuffers < reducing {
-			fmt.Println(result.PacketOfAllBuffers, reducing)
-		}
-
-		accessCount := result.PacketOfAllBuffers - reducing
-		result.AccessCount += accessCount
-		result.AccessPers[len(result.AccessPers)-1] += accessCount
-		bufList = []string{}
-		buf = Buffers{}
-		result.PacketOfAllBuffers = 0
-		result.CurrentTimeCount++
+		buf, bufList, params, result = batchProcessing(buf, bufList, params, result)
 	}
 	if params.CurrentTime > float64(len(result.AccessPers))*params.PerSec {
 		result.AccessPers = append(result.AccessPers, 0)
@@ -147,4 +172,16 @@ func (l List) getListSum(params Params) int {
 		sum += int(float64(v.value) * (float64(params.EntrySize-1) / float64(params.EntrySize)))
 	}
 	return sum
+}
+
+func deleteList(l []string, s string) []string {
+	for i, v := range l {
+		if v == s {
+			l := append(l[:i], l[i+1:]...)
+			n := make([]string, len(s))
+			copy(n, l)
+			return l
+		}
+	}
+	return l
 }
