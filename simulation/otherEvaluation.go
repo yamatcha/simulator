@@ -113,6 +113,10 @@ func Protocol(csvReader *csv.Reader, buf buffer.Buffers, bufList []string, resul
 	}
 	tcp := make([]map[int]int, 450)
 	udp := make([]map[int]int, 450)
+	for num, _ := range protocolPort {
+		tcp[num] = map[int]int{}
+		udp[num] = map[int]int{}
+	}
 	for ; ; result.PacketNumAll++ {
 		line, err := csvReader.Read()
 		if err == io.EOF {
