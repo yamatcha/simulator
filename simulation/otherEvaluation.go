@@ -4,7 +4,6 @@ import (
 	"encoding/csv"
 	"fmt"
 	"io"
-	"sort"
 	"strconv"
 	"strings"
 
@@ -112,8 +111,8 @@ func Protocol(csvReader *csv.Reader, buf buffer.Buffers, bufList []string, resul
 	var protocolPort map[int]string = map[int]string{
 		80: "HTTP", 443: "HTTPS", 25: "SMTP", 110: "POP3", 143: "IMAP4", 53: "DNS", 20: "FTP", 21: "FTP", 67: "DHCP", 68: "DHCP", 23: "TELNET", 179: "BGP",
 	}
-	tcp := make([][]int, 180)
-	udp := make([][]int, 180)
+	tcp := make([]map[int]int, 450)
+	udp := make([]map[int]int, 450)
 	for ; ; result.PacketNumAll++ {
 		line, err := csvReader.Read()
 		if err == io.EOF {
@@ -127,32 +126,31 @@ func Protocol(csvReader *csv.Reader, buf buffer.Buffers, bufList []string, resul
 	}
 	for fiveTuple, buffer := range buf {
 		ft := strings.Split(fiveTuple, " ")
-		portA, _ := strconv.Atoi(ft[1])
-		portB, _ := strconv.Atoi(ft[3])
+		portA, _ := strconv.Atoi(strings.Split(ft[1], "(")[0])
+		portB, _ := strconv.Atoi(strings.Split(ft[3], "(")[0])
 		ports := []int{portA, portB}
 		protocol := ft[4]
-		if protocol == "tcp" {
+		if protocol == "TCP" {
 			for _, port := range ports {
 				_, ok := protocolPort[port]
 				if ok {
-					tcp[port] = append(tcp[port], buffer.Len)
+					tcp[port][buffer.Len]++
 				}
 			}
-		} else if protocol == "udp" {
+		} else if protocol == "UDP" {
 			for _, port := range ports {
 				_, ok := protocolPort[port]
 				if ok {
-					udp[port] = append(udp[port], buffer.Len)
+					udp[port][buffer.Len]++
 				}
 			}
 		}
 
 	}
 	for num, name := range protocolPort {
-		fmt.Print(name + " ")
-		sort.Ints(tcp[num])
-		for _, v := range tcp[num] {
-			fmt.Print(strconv.Itoa(v) + " ")
+		fmt.Print(name)
+		for k, v := range tcp[num] {
+			fmt.Printf(", (%d: %d)", k, v)
 		}
 		fmt.Println()
 	}

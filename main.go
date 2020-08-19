@@ -23,17 +23,17 @@ const (
 func main() {
 
 	var (
-		csvpath   = *flag.String("path", "", "csv path")
-		mode      = *flag.Int("mode", 0, "simulator mode")
-		timeWidth = *flag.Float64("timeWidth", 0, "time width")
-		bufSize   = *flag.Int("bufsize", 0, "the number of buffers")
-		entrySize = *flag.Int("entrysize", 0, "the number of entries per buffer")
+		csvpath   = flag.String("path", "", "csv path")
+		mode      = flag.Int("mode", 0, "simulator mode")
+		timeWidth = flag.Float64("timeWidth", 0, "time width")
+		bufSize   = flag.Int("bufsize", 0, "the number of buffers")
+		entrySize = flag.Int("entrysize", 0, "the number of entries per buffer")
 	)
 
 	buf := buffer.Buffers{}
 	bufList := []string{}
 	result := buffer.ResultData{AccessPers: []int{0}}
-	params := buffer.Params{TimeWidth: timeWidth, BufSize: bufSize, EntrySize: entrySize}
+	params := buffer.Params{TimeWidth: *timeWidth, BufSize: *bufSize, EntrySize: *entrySize}
 
 	// read time width and buffer size
 	flag.Parse()
@@ -41,7 +41,7 @@ func main() {
 	params.PerSec = perSec
 
 	// open csv
-	file, err := os.Open(csvpath)
+	file, err := os.Open(*csvpath)
 	if err != nil {
 		panic(err)
 	}
@@ -49,7 +49,7 @@ func main() {
 	reader := csv.NewReader(file)
 
 	//select simulator
-	switch mode {
+	switch *mode {
 	case 0:
 		buf, bufList, result = simulation.GlobalTimeBase(reader, buf, bufList, result, params, false)
 	case 1:
@@ -63,6 +63,8 @@ func main() {
 		fmt.Println(simulation.GetRtt(reader, buf, params))
 	case 5:
 		simulation.GetWindow(reader, buf, params)
+	case 6:
+		simulation.Protocol(reader, buf, bufList, result, params)
 	}
 
 }
