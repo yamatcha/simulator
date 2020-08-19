@@ -160,7 +160,7 @@ func Protocol(csvReader *csv.Reader, buf buffer.Buffers, bufList []string, resul
 		sort.Ints(keys)
 		fmt.Print(name)
 		for _, key := range keys {
-			fmt.Printf(", (%d: %d)", tcp[num][key], tcp[num][key])
+			fmt.Printf(", (%d: %d)", key, tcp[num][key])
 		}
 		fmt.Println()
 	}
