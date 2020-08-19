@@ -4,6 +4,7 @@ import (
 	"encoding/csv"
 	"fmt"
 	"io"
+	"sort"
 	"strconv"
 	"strings"
 
@@ -152,9 +153,14 @@ func Protocol(csvReader *csv.Reader, buf buffer.Buffers, bufList []string, resul
 
 	}
 	for num, name := range protocolPort {
+		var keys []int
+		for k := range tcp[num] {
+			keys = append(keys, k)
+		}
+		sort.Ints(keys)
 		fmt.Print(name)
-		for k, v := range tcp[num] {
-			fmt.Printf(", (%d: %d)", k, v)
+		for _, key := range keys {
+			fmt.Printf(", (%d: %d)", tcp[num][key], tcp[num][key])
 		}
 		fmt.Println()
 	}
