@@ -44,12 +44,15 @@ func main() {
 	params.PerSec = perSec
 
 	// open csv
-	file, err := os.Open(*csvpath)
-	if err != nil {
-		panic(err)
+	var reader *csv.Reader
+	if *mode != 7 {
+		file, err := os.Open(*csvpath)
+		if err != nil {
+			panic(err)
+		}
+		defer file.Close()
+		reader = csv.NewReader(file)
 	}
-	defer file.Close()
-	reader := csv.NewReader(file)
 
 	//select simulator
 	switch *mode {
