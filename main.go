@@ -60,6 +60,7 @@ func main() {
 	case 2:
 		params.Stupid = true
 		buf, bufList, result = simulation.GlobalTimeBase(reader, buf, bufList, result, params, true)
+		printAcccessPersAvg(result)
 	case 3:
 		buf, bufList, result = simulation.PreEval(reader, buf, bufList, result, params)
 	case 4:
@@ -70,4 +71,12 @@ func main() {
 		simulation.Protocol(reader, buf, bufList, result, params)
 	}
 
+}
+func printAcccessPersAvg(result buffer.ResultData) {
+	sum := 0
+	for _, v := range result.AccessPers {
+		// fmt.Println(v)
+		sum += v
+	}
+	fmt.Println(float64(sum) / 900.0)
 }
