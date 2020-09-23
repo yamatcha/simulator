@@ -40,7 +40,7 @@ func GlobalTimeBase(csvReader *csv.Reader, buf buffer.Buffers, bufList []string,
 }
 
 func FiveTupleContains(fiveTuple string, params buffer.Params) bool {
-	if len(params.SelectedPort) == 0 {
+	if params.SelectedPort[0] == "" {
 		return true
 	}
 	List := strings.Split(fiveTuple, " ")

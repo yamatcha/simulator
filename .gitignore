@@ -6,6 +6,9 @@
 *.txt
 *.gp
 *.eps
-pcap/*
+
+pcap
+csv
 /opCSV/chicago/*
+
 .DS_Store

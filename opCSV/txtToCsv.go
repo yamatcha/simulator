@@ -1,4 +1,4 @@
-package Info
+package opCSV
 
 import (
 	"os"

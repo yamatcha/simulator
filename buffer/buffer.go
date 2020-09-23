@@ -99,6 +99,7 @@ func (buf Buffers) CheckGlobalTime(bufList []string, params Params, result Resul
 	if params.CurrentTime > float64(result.CurrentTimeCount+1)*params.TimeWidth || result.EndFlag == true {
 		buf, bufList, params, result = batchProcessing(buf, bufList, params, result)
 	}
+	fmt.Println(params.CurrentTime, float64(len(result.AccessPers))*params.PerSec)
 	if params.CurrentTime > float64(len(result.AccessPers))*params.PerSec {
 		result.AccessPers = append(result.AccessPers, 0)
 	}

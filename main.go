@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/yamatcha/simulator/buffer"
+	"github.com/yamatcha/simulator/opCSV"
 	"github.com/yamatcha/simulator/simulation"
 
 	"encoding/csv"
@@ -18,28 +19,27 @@ var (
 
 const (
 	perSec float64 = 1.0
-	// maxSec  int     = 900
 )
 
 func main() {
 
 	var (
-		csvpath      = flag.String("path", "", "csv path")
+		csvpath      = flag.String("csvPath", "", "csv path")
 		mode         = flag.Int("mode", 0, "simulator mode")
 		timeWidth    = flag.Float64("timeWidth", 0, "time width")
-		bufSize      = flag.Int("bufsize", 0, "the number of buffers")
-		entrySize    = flag.Int("entrysize", 0, "the number of entries per buffer")
+		bufSize      = flag.Int("bufSize", 0, "the number of buffers")
+		entrySize    = flag.Int("entrySize", 0, "the number of entries per buffer")
 		protocol     = flag.String("protocol", "", "L3 Protocol UDP or TCP")
 		selectedPort = flag.String("selectedPort", "", "the port targeted flow chunk buffer")
+		pcapPath     = flag.String("pcapPath", "", "path of pcap converted to csv")
 	)
 
 	buf := buffer.Buffers{}
 	bufList := []string{}
 	result := buffer.ResultData{AccessPers: []int{0}}
-	params := buffer.Params{TimeWidth: *timeWidth, BufSize: *bufSize, EntrySize: *entrySize, Protocol: *protocol, SelectedPort: strings.Split(*selectedPort, ",")}
 
-	// read time width and buffer size
 	flag.Parse()
+	params := buffer.Params{TimeWidth: *timeWidth, BufSize: *bufSize, EntrySize: *entrySize, Protocol: *protocol, SelectedPort: strings.Split(*selectedPort, ",")}
 
 	params.PerSec = perSec
 
@@ -69,13 +69,16 @@ func main() {
 		simulation.GetWindow(reader, buf, params)
 	case 6:
 		simulation.Protocol(reader, buf, bufList, result, params)
+	case 7:
+		opCSV.PcapToCSV(strings.Split(*pcapPath, ","))
 	}
 
 }
 func printAcccessPersAvg(result buffer.ResultData) {
 	sum := 0
+	fmt.Println(result.AccessPers)
 	for _, v := range result.AccessPers {
-		// fmt.Println(v)
+		fmt.Println(v)
 		sum += v
 	}
 	fmt.Println(float64(sum) / 900.0)

@@ -1,9 +1,11 @@
-package Info
+package opCSV
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/google/gopacket"
+	"github.com/yamatcha/simulator/opCSV/Info"
 
 	"io"
 	"log"
@@ -22,9 +24,6 @@ var (
 )
 
 const (
-	// pcapFile string = "../pcap/201704122345.pcap"
-	// pcapFile string = "../../pcap/201907031400.pcap"
-	// pcapFile string  = "../pcap/http.pcap"
 	perSec float64 = 1.0
 	maxSec int     = 900
 )
@@ -35,12 +34,11 @@ func failOnError(err error) {
 	}
 }
 
-func PcapToCSV() {
-	pcapFile := []string{"./chicagoA/20140320-130000", "./chicagoA/20140320-130100", "./chicagoA/20140320-130200", "./chicagoA/20140320-130300", "./chicagoA/20140320-130400", "./chicagoA/20140320-130500", "./chicagoA/20140320-130600", "./chicagoA/20140320-130700", "./chicagoA/20140320-130800", "./chicagoA/20140320-130900", "./chicagoA/20140320-131000", "./chicagoA/20140320-131100", "./chicagoA/20140320-131200", "./chicagoA/20140320-131300", "./chicagoA/20140320-131400"}
+func PcapToCSV(pcapFile []string) {
+	// pcapFile := []string{"./chicagoA/20140320-130000", "./chicagoA/20140320-130100", "./chicagoA/20140320-130200", "./chicagoA/20140320-130300", "./chicagoA/20140320-130400", "./chicagoA/20140320-130500", "./chicagoA/20140320-130600", "./chicagoA/20140320-130700", "./chicagoA/20140320-130800", "./chicagoA/20140320-130900", "./chicagoA/20140320-131000", "./chicagoA/20140320-131100", "./chicagoA/20140320-131200", "./chicagoA/20140320-131300", "./chicagoA/20140320-131400"}
 	// open pcap file and initialize csv
 
-	// name := strings.Split(strings.Split(pcapFile, "/")[3], ".")[0]
-	name := "chicago20140320-1300A"
+	name := strings.Split(strings.Split(pcapFile[0], "/")[3], ".")[0]
 	file, err := os.OpenFile("./"+name+".csv", os.O_WRONLY|os.O_CREATE, 0600)
 	failOnError(err)
 	defer file.Close()
@@ -68,17 +66,17 @@ func PcapToCSV() {
 				continue
 			}
 			if j == 0 && i == 0 {
-				currentTime = GetTime(packet)
+				currentTime = Info.GetTime(packet)
 				startTime = currentTime
 			}
-			fiveTuple := GetFiveTuple(packet)
+			fiveTuple := Info.GetFiveTuple(packet)
 			if fiveTuple != "" {
-				currentTime = GetTime(packet)
+				currentTime = Info.GetTime(packet)
 				if i < 5 {
 
-					fmt.Println(startTime, currentTime, strconv.FormatFloat(GetDuration(startTime, currentTime), 'f', 6, 64))
+					fmt.Println(startTime, currentTime, strconv.FormatFloat(Info.GetDuration(startTime, currentTime), 'f', 6, 64))
 				}
-				timeStamp := strconv.FormatFloat(GetDuration(startTime, currentTime), 'f', 6, 64)
+				timeStamp := strconv.FormatFloat(Info.GetDuration(startTime, currentTime), 'f', 6, 64)
 				writer.Write([]string{fiveTuple, timeStamp})
 				i++
 			}
