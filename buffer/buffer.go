@@ -25,12 +25,14 @@ type ResultData struct {
 }
 
 type Params struct {
-	CurrentTime float64
-	PerSec      float64
-	BufSize     int
-	EntrySize   int
-	TimeWidth   float64
-	Stupid      bool
+	CurrentTime  float64
+	PerSec       float64
+	BufSize      int
+	EntrySize    int
+	TimeWidth    float64
+	Stupid       bool
+	Protocol     string
+	SelectedPort []string
 }
 
 func (buf Buffers) Append(bufList []string, params Params, fivetuple string, result ResultData) (Buffers, []string, ResultData) {

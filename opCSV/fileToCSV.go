@@ -2,7 +2,7 @@ package main
 
 import "github.com/yamatcha/simulator/opCSV/Info"
 
-func main(){
+func main() {
 	// Info.PcapToCSV()
 	Info.TxtToCSV()
 }

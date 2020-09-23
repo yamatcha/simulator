@@ -4,6 +4,7 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"strings"
 
 	"github.com/yamatcha/simulator/buffer"
 	"github.com/yamatcha/simulator/simulation"
@@ -23,17 +24,19 @@ const (
 func main() {
 
 	var (
-		csvpath   = flag.String("path", "", "csv path")
-		mode      = flag.Int("mode", 0, "simulator mode")
-		timeWidth = flag.Float64("timeWidth", 0, "time width")
-		bufSize   = flag.Int("bufsize", 0, "the number of buffers")
-		entrySize = flag.Int("entrysize", 0, "the number of entries per buffer")
+		csvpath      = flag.String("path", "", "csv path")
+		mode         = flag.Int("mode", 0, "simulator mode")
+		timeWidth    = flag.Float64("timeWidth", 0, "time width")
+		bufSize      = flag.Int("bufsize", 0, "the number of buffers")
+		entrySize    = flag.Int("entrysize", 0, "the number of entries per buffer")
+		protocol     = flag.String("protocol", "", "L3 Protocol UDP or TCP")
+		selectedPort = flag.String("selectedPort", "", "the port targeted flow chunk buffer")
 	)
 
 	buf := buffer.Buffers{}
 	bufList := []string{}
 	result := buffer.ResultData{AccessPers: []int{0}}
-	params := buffer.Params{TimeWidth: *timeWidth, BufSize: *bufSize, EntrySize: *entrySize}
+	params := buffer.Params{TimeWidth: *timeWidth, BufSize: *bufSize, EntrySize: *entrySize, Protocol: *protocol, SelectedPort: strings.Split(*selectedPort, ",")}
 
 	// read time width and buffer size
 	flag.Parse()
