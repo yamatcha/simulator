@@ -1,7 +1,6 @@
 *.dat
 *.png
 *.pcap
-*.csv
 *.py
 *.txt
 *.gp
@@ -9,6 +8,5 @@
 
 pcap
 csv
-/opCSV/chicago/*
 
 .DS_Store

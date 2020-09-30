@@ -16,11 +16,11 @@ type Buffers map[string]Buffer
 type ResultData struct {
 	MaxPacketNum       int
 	AccessCount        int
-	CurrentTimeCount   int
+	NextAccessTime     int
 	BufMax             int
 	PacketNumAll       int
 	PacketOfAllBuffers int
-	AccessPers         []int
+	AccessPerSecList   []int
 	EndFlag            bool
 }
 
@@ -35,88 +35,88 @@ type Params struct {
 	SelectedPort []string
 }
 
-func (buf Buffers) Append(bufList []string, params Params, fivetuple string, result ResultData) (Buffers, []string, ResultData) {
+func (buf Buffers) Append(bufOrderList []string, params Params, fivetuple string, result ResultData) (Buffers, []string, ResultData) {
 	_, ok := buf[fivetuple]
 	result.PacketOfAllBuffers++
 	if !ok {
 		buf[fivetuple] = Buffer{params.CurrentTime, 1}
-		bufList = append(bufList, fivetuple)
+		bufOrderList = append(bufOrderList, fivetuple)
 	} else {
 		b := buf[fivetuple]
 		buf[fivetuple] = Buffer{b.FirstTime, b.Len + 1}
-		if len(bufList) > result.BufMax {
-			result.BufMax = len(bufList)
+		if len(bufOrderList) > result.BufMax {
+			result.BufMax = len(bufOrderList)
 		}
 	}
-	return buf, bufList, result
+	return buf, bufOrderList, result
 }
 
-func batchProcessing(buf Buffers, bufList []string, params Params, result ResultData) (Buffers, []string, Params, ResultData) {
+func batchProcessing(buf Buffers, bufOrderList []string, params Params, result ResultData) (Buffers, []string, Params, ResultData) {
 	sortedMap := List{}
 	if params.Stupid == false {
 		sortedMap = buf.getSortedMap(params.BufSize)
 	} else {
-		sortedMap = buf.getStupidMap(bufList, params)
+		sortedMap = buf.getStupidMap(bufOrderList, params)
 	}
 	reducing := sortedMap.getListSum(params)
 	if result.PacketOfAllBuffers < reducing {
-		fmt.Println(result.PacketOfAllBuffers, reducing)
+		panic(fmt.Errorf("error: reducing is more than packet of all buffers"))
 	}
 
 	accessCount := result.PacketOfAllBuffers - reducing
 	result.AccessCount += accessCount
-	result.AccessPers[len(result.AccessPers)-1] += accessCount
-	bufList = []string{}
+	result.AccessPerSecList[len(result.AccessPerSecList)-1] += accessCount
+	bufOrderList = []string{}
 	buf = Buffers{}
 	result.PacketOfAllBuffers = 0
-	result.CurrentTimeCount++
+	result.NextAccessTime = int(params.CurrentTime)*100 + 1
 
-	return buf, bufList, params, result
+	return buf, bufOrderList, params, result
 }
 
-func (buf Buffers) CheckAck(fiveTuple string, bufList []string, params Params, result ResultData) {
+func (buf Buffers) CheckAck(fiveTuple string, bufOrderList []string, params Params, result ResultData) {
 	list := strings.Split(fiveTuple, " ")
 	ack := strings.Join(append(append(list[2:4], list[0:2]...), list[4]), " ")
 	_, ok := buf[ack]
 	if ok {
 		accessCount := int(float64(buf[ack].Len) / float64(params.EntrySize))
 		result.AccessCount += accessCount
-		result.AccessPers[len(result.AccessPers)-1] += accessCount
+		result.AccessPerSecList[len(result.AccessPerSecList)-1] += accessCount
 		result.PacketOfAllBuffers -= buf[ack].Len
-		bufList = deleteList(bufList, ack)
+		bufOrderList = deleteList(bufOrderList, ack)
 		delete(buf, ack)
 	}
 }
 
-func (buf Buffers) EndProcessing(bufList []string, params Params, result ResultData) {
-	buf, bufList, params, result = batchProcessing(buf, bufList, params, result)
+func (buf Buffers) EndProcessing(bufOrderList []string, params Params, result ResultData) {
+	buf, bufOrderList, params, result = batchProcessing(buf, bufOrderList, params, result)
 }
 
-func (buf Buffers) CheckGlobalTime(bufList []string, params Params, result ResultData) (Buffers, []string, ResultData) {
+func (buf Buffers) CheckGlobalTime(bufOrderList []string, params Params, result ResultData) (Buffers, []string, ResultData) {
 	if params.BufSize > len(buf) {
 		params.BufSize = len(buf)
 	}
-	if params.CurrentTime > float64(result.CurrentTimeCount+1)*params.TimeWidth || result.EndFlag == true {
-		buf, bufList, params, result = batchProcessing(buf, bufList, params, result)
+	if params.CurrentTime/params.TimeWidth > float64(result.NextAccessTime) || result.EndFlag == true {
+		buf, bufOrderList, params, result = batchProcessing(buf, bufOrderList, params, result)
 	}
-	if params.CurrentTime > float64(len(result.AccessPers))*params.PerSec {
-		result.AccessPers = append(result.AccessPers, 0)
+	if params.CurrentTime > float64(len(result.AccessPerSecList))*params.PerSec {
+		result.AccessPerSecList = append(result.AccessPerSecList, 0)
 	}
-	return buf, bufList, result
+	return buf, bufOrderList, result
 }
 
-func (buf Buffers) CheckGlobalTimeWithUnlimitedBuffers(bufList []string, params Params, result ResultData) (Buffers, []string, ResultData) {
-	if params.CurrentTime > float64(result.CurrentTimeCount+1)*params.TimeWidth || result.EndFlag == true {
-		result.AccessCount += len(bufList)
-		result.AccessPers[len(result.AccessPers)-1] += len(bufList)
-		bufList = []string{}
+func (buf Buffers) CheckGlobalTimeWithUnlimitedBuffers(bufOrderList []string, params Params, result ResultData) (Buffers, []string, ResultData) {
+	if params.CurrentTime > float64(result.NextAccessTime)*params.TimeWidth || result.EndFlag == true {
+		result.AccessCount += len(bufOrderList)
+		result.AccessPerSecList[len(result.AccessPerSecList)-1] += len(bufOrderList)
+		bufOrderList = []string{}
 		buf = Buffers{}
-		result.CurrentTimeCount++
+		result.NextAccessTime = int(params.CurrentTime)*100 + 1
 	}
-	if params.CurrentTime > float64(len(result.AccessPers))*params.PerSec {
-		result.AccessPers = append(result.AccessPers, 0)
+	if params.CurrentTime > float64(len(result.AccessPerSecList))*params.PerSec {
+		result.AccessPerSecList = append(result.AccessPerSecList, 0)
 	}
-	return buf, bufList, result
+	return buf, bufOrderList, result
 }
 
 //for get sorted map
@@ -128,12 +128,14 @@ type Entry struct {
 type List []Entry
 
 //using stupid simulation
-func (buf Buffers) getStupidMap(bufList []string, params Params) List {
+func (buf Buffers) getStupidMap(bufOrderList []string, params Params) List {
 	sortedMap := List{}
 	count := 0
-	for _, k := range bufList {
+	for _, k := range bufOrderList {
 		element := Entry{k, buf[k].Len}
-		sortedMap = append(sortedMap, element)
+		if FiveTupleContains(k, params) {
+			sortedMap = append(sortedMap, element)
+		}
 		count++
 		if count == params.BufSize {
 			break
@@ -186,4 +188,20 @@ func deleteList(l []string, s string) []string {
 		}
 	}
 	return l
+}
+
+func FiveTupleContains(fiveTuple string, params Params) bool {
+	if params.SelectedPort[0] == "" {
+		return true
+	}
+	List := strings.Split(fiveTuple, " ")
+	if params.Protocol != List[4] {
+		return false
+	}
+	for _, v := range params.SelectedPort {
+		if v == strings.Split(List[1], "(")[0] || v == strings.Split(List[3], "(")[0] {
+			return true
+		}
+	}
+	return false
 }

@@ -92,7 +92,7 @@ func GetWindow(csvReader *csv.Reader, buf buffer.Buffers, params buffer.Params) 
 	return float64(rttSum) / float64(rttCount)
 }
 
-func PreEval(csvReader *csv.Reader, buf buffer.Buffers, bufList []string, result buffer.ResultData, params buffer.Params) (buffer.Buffers, []string, buffer.ResultData) {
+func PreEval(csvReader *csv.Reader, buf buffer.Buffers, bufOrderList []string, result buffer.ResultData, params buffer.Params) (buffer.Buffers, []string, buffer.ResultData) {
 	for ; ; result.PacketNumAll++ {
 		line, err := csvReader.Read()
 		if err == io.EOF {
@@ -102,13 +102,13 @@ func PreEval(csvReader *csv.Reader, buf buffer.Buffers, bufList []string, result
 		}
 		fiveTuple := line[0]
 		params.CurrentTime, _ = strconv.ParseFloat(line[1], 64)
-		buf, bufList, result = buf.Append(bufList, params, fiveTuple, result)
+		buf, bufOrderList, result = buf.Append(bufOrderList, params, fiveTuple, result)
 	}
 	result.EndFlag = true
-	return buf, bufList, result
+	return buf, bufOrderList, result
 }
 
-func Protocol(csvReader *csv.Reader, buf buffer.Buffers, bufList []string, result buffer.ResultData, params buffer.Params) (buffer.Buffers, []string, buffer.ResultData) {
+func Protocol(csvReader *csv.Reader, buf buffer.Buffers, bufOrderList []string, result buffer.ResultData, params buffer.Params) (buffer.Buffers, []string, buffer.ResultData) {
 	var protocolPort map[int]string = map[int]string{
 		80: "HTTP", 443: "HTTPS", 25: "SMTP", 110: "POP3", 143: "IMAP4", 53: "DNS", 20: "FTP", 21: "FTP", 67: "DHCP", 68: "DHCP", 23: "TELNET", 179: "BGP",
 	}
@@ -127,7 +127,7 @@ func Protocol(csvReader *csv.Reader, buf buffer.Buffers, bufList []string, resul
 		}
 		fiveTuple := line[0]
 		params.CurrentTime, _ = strconv.ParseFloat(line[1], 64)
-		buf, bufList, result = buf.Append(bufList, params, fiveTuple, result)
+		buf, bufOrderList, result = buf.Append(bufOrderList, params, fiveTuple, result)
 	}
 	for fiveTuple, buffer := range buf {
 		ft := strings.Split(fiveTuple, " ")
@@ -164,5 +164,5 @@ func Protocol(csvReader *csv.Reader, buf buffer.Buffers, bufList []string, resul
 		}
 		fmt.Println()
 	}
-	return buf, bufList, result
+	return buf, bufOrderList, result
 }
