@@ -60,7 +60,7 @@ func batchProcessing(buf Buffers, bufOrderList []string, params Params, result R
 	}
 	reducing := sortedMap.getListSum(params)
 	if result.PacketOfAllBuffers < reducing {
-		panic(fmt.Errorf("error: reducing is more than packet of all buffers"))
+		panic(fmt.Errorf("error: reducing(%d) is more than packet of all buffers(%d)%d", reducing, result.PacketOfAllBuffers, len(sortedMap)))
 	}
 
 	accessCount := result.PacketOfAllBuffers - reducing
@@ -69,12 +69,12 @@ func batchProcessing(buf Buffers, bufOrderList []string, params Params, result R
 	bufOrderList = []string{}
 	buf = Buffers{}
 	result.PacketOfAllBuffers = 0
-	result.NextAccessTime = int(params.CurrentTime)*100 + 1
+	result.NextAccessTime = int(params.CurrentTime/params.TimeWidth) + 1
 
 	return buf, bufOrderList, params, result
 }
 
-func (buf Buffers) CheckAck(fiveTuple string, bufOrderList []string, params Params, result ResultData) {
+func (buf Buffers) CheckAck(fiveTuple string, bufOrderList []string, params Params, result ResultData)(Buffers, []string, ResultData)  {
 	list := strings.Split(fiveTuple, " ")
 	ack := strings.Join(append(append(list[2:4], list[0:2]...), list[4]), " ")
 	_, ok := buf[ack]
@@ -86,6 +86,7 @@ func (buf Buffers) CheckAck(fiveTuple string, bufOrderList []string, params Para
 		bufOrderList = deleteList(bufOrderList, ack)
 		delete(buf, ack)
 	}
+        return buf, bufOrderList, result
 }
 
 func (buf Buffers) EndProcessing(bufOrderList []string, params Params, result ResultData) {

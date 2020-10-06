@@ -79,8 +79,8 @@ func main() {
 }
 func printAcccessPersAvg(result buffer.ResultData) {
 	sum := 0
-	for i, v := range result.AccessPerSecList {
-		fmt.Println(i, v)
+	for _, v := range result.AccessPerSecList {
+		//		fmt.Println(i, v)
 		sum += v
 	}
 	fmt.Println(float64(sum) / 900.0)

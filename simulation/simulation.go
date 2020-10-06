@@ -3,6 +3,7 @@ package simulation
 import (
 	"encoding/csv"
 	"io"
+        "fmt"
 	"strconv"
 
 	"github.com/yamatcha/simulator/buffer"
@@ -23,8 +24,13 @@ func GlobalTimeBase(csvReader *csv.Reader, buf buffer.Buffers, bufOrderList []st
 		} else {
 			buf, bufOrderList, result = buf.CheckGlobalTime(bufOrderList, params, result)
 		}
+                prev := buf
 		buf, bufOrderList, result = buf.Append(bufOrderList, params, fiveTuple, result)
-		buf.CheckAck(fiveTuple, bufOrderList, params, result)
+
+                if sum!=result.PacketOfAllBuffers{
+                        panic(fmt.Errorf("%d %d %v %v\n",sum,result.PacketOfAllBuffers,buf,prev))
+                }
+		buf, bufOrderList,result=buf.CheckAck(fiveTuple, bufOrderList, params, result)
 	}
 	result.EndFlag = true
 	if ideal == false {
