@@ -74,7 +74,7 @@ func batchProcessing(buf Buffers, bufOrderList []string, params Params, result R
 	return buf, bufOrderList, params, result
 }
 
-func (buf Buffers) CheckAck(fiveTuple string, bufOrderList []string, params Params, result ResultData)(Buffers, []string, ResultData)  {
+func (buf Buffers) CheckAck(fiveTuple string, bufOrderList []string, params Params, result ResultData) (Buffers, []string, ResultData) {
 	list := strings.Split(fiveTuple, " ")
 	ack := strings.Join(append(append(list[2:4], list[0:2]...), list[4]), " ")
 	_, ok := buf[ack]
@@ -86,7 +86,7 @@ func (buf Buffers) CheckAck(fiveTuple string, bufOrderList []string, params Para
 		bufOrderList = deleteList(bufOrderList, ack)
 		delete(buf, ack)
 	}
-        return buf, bufOrderList, result
+	return buf, bufOrderList, result
 }
 
 func (buf Buffers) EndProcessing(bufOrderList []string, params Params, result ResultData) {
@@ -136,8 +136,8 @@ func (buf Buffers) getStupidMap(bufOrderList []string, params Params) List {
 		element := Entry{k, buf[k].Len}
 		if FiveTupleContains(k, params) {
 			sortedMap = append(sortedMap, element)
+			count++
 		}
-		count++
 		if count == params.BufSize {
 			break
 		}
