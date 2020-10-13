@@ -19,6 +19,8 @@ func GlobalTimeBase(csvReader *csv.Reader, buf buffer.Buffers, bufOrderList []st
 		}
 		fiveTuple := line[0]
 		params.CurrentTime, _ = strconv.ParseFloat(line[1], 64)
+
+		buf, bufOrderList, result = buf.CheckAck(fiveTuple, bufOrderList, params, result)
 		if ideal == false {
 			buf, bufOrderList, result = buf.CheckGlobalTimeWithUnlimitedBuffers(bufOrderList, params, result)
 		} else {
@@ -34,7 +36,6 @@ func GlobalTimeBase(csvReader *csv.Reader, buf buffer.Buffers, bufOrderList []st
 		if sum != result.PacketOfAllBuffers {
 			panic(fmt.Errorf("sum of buffers:%d result.PacketOfAllBuffers %d\n", sum, result.PacketOfAllBuffers))
 		}
-		buf, bufOrderList, result = buf.CheckAck(fiveTuple, bufOrderList, params, result)
 	}
 	result.EndFlag = true
 	if ideal == false {
