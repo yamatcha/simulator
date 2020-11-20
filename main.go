@@ -35,7 +35,6 @@ func main() {
 	)
 
 	buf := buffer.Buffers{}
-	bufOrderList := []string{}
 	result := buffer.ResultData{AccessPerSecList: []int{0}, NextAccessTime: 1}
 
 	flag.Parse()
@@ -57,22 +56,25 @@ func main() {
 	//select simulator
 	switch *mode {
 	case 0:
-		buf, bufOrderList, result = simulation.GlobalTimeBase(reader, buf, bufOrderList, result, params, false)
+		params.IsLimited = false
+		buf, result = simulation.GlobalTimeBase(reader, buf, result, params)
 	case 1:
-		buf, bufOrderList, result = simulation.GlobalTimeBase(reader, buf, bufOrderList, result, params, true)
+		params.IsLimited = true
+		buf, result = simulation.GlobalTimeBase(reader, buf, result, params)
 		printAcccessPersAvg(result)
 	case 2:
-		params.Stupid = true
-		buf, bufOrderList, result = simulation.GlobalTimeBase(reader, buf, bufOrderList, result, params, true)
+		params.IsLimited = true
+		params.IsStupid = true
+		buf, result = simulation.GlobalTimeBase(reader, buf, result, params)
 		printAcccessPersAvg(result)
 	case 3:
-		buf, bufOrderList, result = simulation.PreEval(reader, buf, bufOrderList, result, params)
+		buf, result = simulation.PreEval(reader, buf, result, params)
 	case 4:
 		fmt.Println(simulation.GetRtt(reader, buf, params))
 	case 5:
 		simulation.GetWindow(reader, buf, params)
 	case 6:
-		simulation.Protocol(reader, buf, bufOrderList, result, params)
+		simulation.Protocol(reader, buf, result, params)
 	case 7:
 		opCSV.PcapToCSV(strings.Split(*pcapPath, ","))
 	}

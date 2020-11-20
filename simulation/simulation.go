@@ -9,8 +9,10 @@ import (
 	"github.com/yamatcha/simulator/buffer"
 )
 
-func GlobalTimeBase(csvReader *csv.Reader, buf buffer.Buffers, bufOrderList []string, result buffer.ResultData, params buffer.Params, ideal bool) (buffer.Buffers, []string, buffer.ResultData) {
+func GlobalTimeBase(csvReader *csv.Reader, buf buffer.Buffers, result buffer.ResultData, params buffer.Params) (buffer.Buffers, buffer.ResultData) {
+	var count int
 	for ; ; result.PacketNumAll++ {
+		count++
 		line, err := csvReader.Read()
 		if err == io.EOF {
 			break
@@ -20,13 +22,18 @@ func GlobalTimeBase(csvReader *csv.Reader, buf buffer.Buffers, bufOrderList []st
 		fiveTuple := line[0]
 		params.CurrentTime, _ = strconv.ParseFloat(line[1], 64)
 
-		buf, bufOrderList, result = buf.CheckAck(fiveTuple, bufOrderList, params, result)
-		if ideal == false {
-			buf, bufOrderList, result = buf.CheckGlobalTimeWithUnlimitedBuffers(bufOrderList, params, result)
+		buf, result = buf.CheckAck(fiveTuple, params, result)
+		if params.IsLimited == false {
+			buf, result = buf.CheckGlobalTimeWithUnlimitedBuffers(params, result)
 		} else {
-			buf, bufOrderList, result = buf.CheckGlobalTime(bufOrderList, params, result)
+			buf, result = buf.CheckGlobalTime(params, result)
 		}
-		buf, bufOrderList, result = buf.Append(bufOrderList, params, fiveTuple, result)
+		if !buffer.FiveTupleContains(fiveTuple, params) {
+			buffer.Access(result, 1)
+			return buf, result
+		} else {
+			buf, result = buf.Append(params, fiveTuple, result)
+		}
 
 		sum := 0
 		for _, v := range buf {
@@ -38,10 +45,14 @@ func GlobalTimeBase(csvReader *csv.Reader, buf buffer.Buffers, bufOrderList []st
 		}
 	}
 	result.EndFlag = true
-	if ideal == false {
-		buf, bufOrderList, result = buf.CheckGlobalTimeWithUnlimitedBuffers(bufOrderList, params, result)
+	if params.IsLimited == false {
+		buf, result = buf.CheckGlobalTimeWithUnlimitedBuffers(params, result)
 	} else {
-		buf, bufOrderList, result = buf.CheckGlobalTime(bufOrderList, params, result)
+		buf, result = buf.CheckGlobalTime(params, result)
 	}
-	return buf, bufOrderList, result
+	// if buf != buffer.Buffers {
+	// 	panic(fmt.Errorf("buf is not empty %v", buf))
+	// }
+	fmt.Println(buf)
+	return buf, result
 }
