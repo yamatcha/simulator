@@ -1,48 +1,44 @@
 package Info
 
 import (
-	// "fmt"
+	"fmt"
 	"time"
 
 	"github.com/google/gopacket"
-	"github.com/google/gopacket/layers"
 )
 
-func GetFiveTuple(packet gopacket.Packet) string {
-	// extract the factor of packet
-	ip, _ := packet.Layer(layers.LayerTypeIPv4).(*layers.IPv4)
-	var info string
-	// if ip address exist
-	if ip != nil {
-		//get value of protocol, sourceIP,destinationIP
-		protocol := ip.Protocol.String()
-		srcip := ip.SrcIP.String()
-		dstip := ip.DstIP.String()
+type FiveTuple struct {
+	srcIp, srcPort, dstIp, dstPort, protocol string
+}
 
-		// port is different between udp and tcp
-		if ip.Protocol.String() == "UDP" {
-			udp, _ := packet.Layer(layers.LayerTypeUDP).(*layers.UDP)
-			if udp != nil {
-				srcport := udp.SrcPort.String()
-				dstport := udp.DstPort.String()
-				info = srcip + " " + srcport + " " + dstip + " " + dstport + " " + protocol
-			}
-		}
-		if ip.Protocol.String() == "TCP" {
-			tcp, _ := packet.Layer(layers.LayerTypeTCP).(*layers.TCP)
-			if tcp != nil {
-				srcport := tcp.SrcPort.String()
-				dstport := tcp.DstPort.String()
-				info = srcip + " " + srcport + " " + dstip + " " + dstport + " " + protocol
-			}
-		}
+func GetFiveTuple(packet gopacket.Packet) FiveTuple {
+	dstIp := packet.NetworkLayer().NetworkFlow().Dst().String()
+	srcIp := packet.NetworkLayer().NetworkFlow().Src().String()
+	dstPort := packet.TransportLayer().TransportFlow().Dst().String()
+	srcPort := packet.TransportLayer().TransportFlow().Src().String()
+	protocol := packet.TransportLayer().LayerType().String()
+	if dstIp == "" || srcIp == "" || dstPort == "" || srcPort == "" || protocol == "" {
+		return FiveTuple{}
 	}
-	return info
+	return FiveTuple{srcIp, srcPort, dstIp, dstPort, protocol}
+}
+
+func (f FiveTuple) String() string {
+	return fmt.Sprintf("%s %s %s %s %s", f.srcIp, f.srcPort, f.dstIp, f.dstPort, f.protocol)
+}
+
+func (f FiveTuple) ForCacheSimulator() []string {
+	return []string{f.srcIp, f.srcPort, f.dstIp, f.dstPort, f.protocol}
 }
 
 func GetTime(packet gopacket.Packet) time.Time {
 	meta := packet.Metadata()
 	return meta.Timestamp
+}
+
+func GetLen(packet gopacket.Packet) int {
+	meta := packet.Metadata()
+	return meta.Length
 }
 
 func GetDuration(first time.Time, now time.Time) float64 {
