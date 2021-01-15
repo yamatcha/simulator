@@ -9,9 +9,9 @@ import (
 )
 
 func TxtToCSV() {
-	fp, err := os.Open("./pcap/sinet/sinet_use.txt")
+	fp, err := os.Open("")
 	failOnError(err)
-	file, err := os.OpenFile("./sinet.csv", os.O_WRONLY|os.O_CREATE, 0600)
+	file, err := os.OpenFile("", os.O_WRONLY|os.O_CREATE, 0600)
 	failOnError(err)
 	err = file.Truncate(0)
 	failOnError(err)
