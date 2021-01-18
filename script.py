@@ -5,7 +5,7 @@ import datetime
 import math
 
 cmd='go run main.go'
-csvpaths = ["/csv/201907031400.csv"]
+csvpaths = ["/csv/chicago.csv"]
 modes=['2']
 timeWidths =['0.01']
 memsizes =['1000','500']
@@ -22,12 +22,12 @@ for timeWidth in timeWidths:
 				for entryarg in entryargs:
 					bufSize=str(int(memsize)//int(entryarg))
 					for protocol in protocols:
-						l.append(cmd+' -csvPath=/home/yamashita'+csvpath+' -mode='+mode+' -timeWidth='+timeWidth+' -bufSize=' +bufSize+' -entrySize='+entryarg+' '+protocol)
+						l.append(cmd+' -csvPath=/home/soju'+csvpath+' -mode='+mode+' -timeWidth='+timeWidth+' -bufSize=' +bufSize+' -entrySize='+entryarg+' '+protocol)
 
 for i in l:
 	print(i)
 
-path='/home/yamashita/researchResult/protocolfilter/test.txt'
+path='/home/soju/researchResult/protocolfilter/test1.txt'
 with open(path,mode='a') as f:
 	r=''
 	for i in l:
@@ -36,13 +36,3 @@ with open(path,mode='a') as f:
 		print(r.replace("\n","")+'\n')
 		f.write(i+' '+r.replace("\n","")+'\n')
 	f.flush()
-
-
-url = "https://notify-api.line.me/api/notify"
-token = "WcudzQXjoEgLad8EA68AkLe98Tl5mxEjbVhgOjdBIZH"
-headers = {"Authorization" : "Bearer "+ token}
-payload = {"message" :  nowTime}
-# files = {"imageFile": open("test0.dat")}
-
-r = requests.post(url ,headers = headers ,params=payload)
-

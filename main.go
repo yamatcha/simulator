@@ -60,6 +60,7 @@ func main() {
 		buf, bufOrderList, result = simulation.GlobalTimeBase(reader, buf, bufOrderList, result, params, false)
 	case 1:
 		buf, bufOrderList, result = simulation.GlobalTimeBase(reader, buf, bufOrderList, result, params, true)
+		printAcccessPersAvg(result)
 	case 2:
 		params.Stupid = true
 		buf, bufOrderList, result = simulation.GlobalTimeBase(reader, buf, bufOrderList, result, params, true)
