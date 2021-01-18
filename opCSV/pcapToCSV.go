@@ -107,6 +107,9 @@ func CsvGenForCacheSimulator(pcapFile []string) {
 			} else {
 				failOnError(err)
 			}
+			if packet.TransportLayer() == nil || packet.NetworkLayer() == nil {
+				continue
+			}
 			if j == 0 && i == 0 {
 				currentTime = Info.GetTime(packet)
 				startTime = currentTime

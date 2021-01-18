@@ -28,7 +28,7 @@ func (f FiveTuple) String() string {
 }
 
 func (f FiveTuple) ForCacheSimulator() []string {
-	return []string{f.srcIp, f.srcPort, f.dstIp, f.dstPort, f.protocol}
+	return []string{f.srcIp, f.dstIp, f.protocol, f.srcPort, f.dstPort}
 }
 
 func GetTime(packet gopacket.Packet) time.Time {

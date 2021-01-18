@@ -45,7 +45,7 @@ func main() {
 
 	// open csv
 	var reader *csv.Reader
-	if *mode != 7 {
+	if *mode != 7 && *mode != 8 {
 		file, err := os.Open(*csvpath)
 		if err != nil {
 			panic(err)
@@ -75,6 +75,8 @@ func main() {
 		simulation.Protocol(reader, buf, bufOrderList, result, params)
 	case 7:
 		opCSV.PcapToCSV(strings.Split(*pcapPath, ","))
+	case 8:
+		opCSV.CsvGenForCacheSimulator(strings.Split(*pcapPath, ","))
 	}
 
 }
